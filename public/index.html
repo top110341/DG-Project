@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AG Projects — Enterprise Project Management Platform</title>
+    <meta name="description" content="Professional project management platform with task tracking, Kanban boards, Gantt charts, timesheets and invoicing.">
+    <!-- Inline initial theme check to prevent flash of wrong theme -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('ag_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <!-- MSAL.js 2.x for Microsoft Authentication -->
+    <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+</head>
+<body>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-notification">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="toast-message">Notification</span>
+    </div>
+
+    <!-- =============== LOGIN SCREEN =============== -->
+    <div id="login-screen">
+        <div class="login-top-controls">
+            <button type="button" class="btn btn-secondary theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">
+                <span class="theme-icon">🌙</span> <span class="theme-text">Dark</span>
+            </button>
+            <button type="button" class="btn btn-secondary lang-toggle-btn" onclick="toggleLanguage()" title="Switch Language">
+                <span class="lang-icon">🌐</span> <span class="lang-text">EN</span>
+            </button>
+        </div>
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="brand-icon">A</div>
+                <span>AG Projects</span>
+            </div>
+            <p class="login-subtitle" data-i18n="login_subtitle">Sign in to your enterprise workspace</p>
+
+            <!-- Microsoft Sign-In Button -->
+            <button type="button" class="btn btn-microsoft" onclick="loginWithMicrosoft()" style="width:100%; margin-bottom: 12px;">
+                <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
+                <span data-i18n="login_microsoft">Sign in with Microsoft</span>
+            </button>
+
+            <div class="login-divider"><span data-i18n="login_or">or sign in with email</span></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email" data-i18n="email_label">Email Address</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="admin@demo.com" required value="admin@demo.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password" data-i18n="password_label">Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required value="admin123">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 10px; height: 44px; font-size: 0.95rem;">
+                    <span data-i18n="sign_in_btn">Sign In</span>
+                </button>
+            </form>
+            <div class="login-hint">
+                <span data-i18n="demo_creds">Demo credentials:</span> <code>admin@demo.com</code> / <code>admin123</code><br>
+                <em data-i18n="ms_hint" style="font-size:0.75rem;">Microsoft login requires Azure AD App Registration.</em>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============== APP SHELL =============== -->
+    <div id="app-container">
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="app-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">A</div>
+                <span>AG Projects</span>
+            </div>
+
+            <!-- Workspace Selector -->
+            <div class="sidebar-workspace-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:0.72rem; font-weight:600; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.08em;" data-i18n="workspace_label">Workspace</span>
+                    <button class="btn-icon" style="padding:2px 6px; font-size:1.1rem; line-height:1; color:var(--accent);" onclick="openModal('new-workspace-modal')" title="New Workspace">+</button>
+                </div>
+                <select id="workspace-select" class="form-control" style="padding:8px 12px; font-size:0.85rem; font-weight:500;">
+                </select>
+                <div id="sidebar-workspaces-list" class="sidebar-workspaces-list"></div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a class="menu-item active" data-screen="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                    <span data-i18n="menu_dashboard">Dashboard</span>
+                </a></li>
+                <li><a class="menu-item" data-screen="executive-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <span data-i18n="menu_exec_dashboard">📊 Executive Dashboard</span>
+                </a></li>
+                <li><a class="menu-item" data-screen="projects">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    <span data-i18n="menu_projects">Projects</span>
+                </a></li>
+                <li><a class="menu-item" data-screen="team-management">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span data-i18n="menu_team">👥 Team & Hierarchy</span>
+                </a></li>
+                <li><a class="menu-item" data-screen="settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span data-i18n="menu_settings">Settings</span>
+                </a></li>
+            </ul>
+
+            <div class="sidebar-user">
+                <div id="sidebar-avatar" class="avatar">AD</div>
+                <div class="user-info">
+                    <div id="sidebar-username" class="user-name">Admin Demo</div>
+                    <div class="user-role" data-i18n="user_role">Manager</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="main-panel">
+
+            <!-- Navbar -->
+            <header class="navbar">
+                <div class="nav-left">
+                    <button id="mobile-sidebar-toggle" class="btn btn-icon mobile-menu-btn" onclick="toggleMobileSidebar()" title="Toggle Menu" style="font-size:1.3rem; padding:4px 8px; display:none;">☰</button>
+                    <div id="nav-breadcrumb" class="breadcrumb" style="display:none; align-items:center; gap:8px;">
+                        <a href="javascript:void(0)" onclick="navigateToProjects()" style="color:var(--text-secondary); font-weight:500;" data-i18n="menu_projects">Projects</a>
+                        <span style="color:var(--text-muted)">/</span>
+                        <span id="breadcrumb-project-name" style="font-weight:600; color:var(--text-primary);">Project</span>
+                    </div>
+                    <h3 id="current-screen-title" style="font-size:1.05rem; font-weight:600;" data-i18n="menu_dashboard">Dashboard</h3>
+                    <div id="nav-workspace-selector-wrapper" class="project-selector-wrapper" style="display:none; margin-left: 8px;">
+                        <select id="mobile-navbar-workspace-select" class="project-selector" style="max-width: 140px; font-weight: 600;">
+                        </select>
+                    </div>
+                </div>
+                <div class="nav-right">
+                    <!-- Theme Toggle -->
+                    <button type="button" class="btn btn-secondary theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme" style="padding:6px 12px; font-size:0.8rem;">
+                        <span class="theme-icon">🌙</span> <span class="theme-text">Dark</span>
+                    </button>
+                    <!-- Language Switcher -->
+                    <button type="button" class="btn btn-secondary lang-toggle-btn" onclick="toggleLanguage()" title="Switch Language" style="padding:6px 12px; font-size:0.8rem;">
+                        <span class="lang-icon">🌐</span> <span class="lang-text">EN</span>
+                    </button>
+                    <!-- Notifications Bell -->
+                    <div style="position:relative; display:inline-block;">
+                        <button id="notif-bell-btn" class="btn btn-icon" title="Notifications" style="position:relative;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            <span id="notif-badge" class="notif-badge" style="display:none;">0</span>
+                        </button>
+                        <div id="notif-dropdown" class="notif-dropdown">
+                            <div class="notif-dropdown-header">
+                                <span style="font-weight:600;" data-i18n="notif_title">Notifications</span>
+                                <button class="btn btn-ghost" style="font-size:0.75rem; padding:4px 8px; color:var(--accent);" onclick="markAllNotificationsRead()" data-i18n="notif_mark_read">Mark all read</button>
+                            </div>
+                            <div id="notif-list-container" class="notif-list-container"></div>
+                        </div>
+                    </div>
+                    <button id="logout-btn" class="btn btn-icon" title="Sign Out">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Frame -->
+            <div class="content-frame">
+
+                <!-- SCREEN: DASHBOARD -->
+                <div id="screen-dashboard" class="app-screen active">
+                    <div class="dashboard-grid">
+                        <div class="stat-card"><div class="stat-info"><h3 data-i18n="stat_projects">Projects</h3><div id="stat-projects" class="stat-number">0</div></div><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div></div>
+                        <div class="stat-card"><div class="stat-info"><h3 data-i18n="stat_active_tasks">Active Tasks</h3><div id="stat-tasks" class="stat-number">0</div></div><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div></div>
+                        <div class="stat-card"><div class="stat-info"><h3 data-i18n="stat_hours">Logged Hours</h3><div id="stat-hours" class="stat-number">0</div></div><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div>
+                        <div class="stat-card"><div class="stat-info"><h3 data-i18n="stat_milestones">Milestones</h3><div id="stat-milestones" class="stat-number">0</div></div><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div></div>
+                    </div>
+                    <div class="dashboard-details">
+                        <div class="detail-panel" style="grid-column: span 1;">
+                            <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <h2 data-i18n="panel_all_tasks">All Tasks Overview</h2>
+                                    <span class="badge badge-progress" id="dashboard-tasks-count">0</span>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    <button class="btn btn-secondary dashboard-task-filter active" style="padding:4px 10px; font-size:0.75rem;" onclick="filterDashboardTasks('all', this)" data-i18n="filter_all">All</button>
+                                    <button class="btn btn-secondary dashboard-task-filter" style="padding:4px 10px; font-size:0.75rem;" onclick="filterDashboardTasks('active', this)" data-i18n="filter_active">Active</button>
+                                    <button class="btn btn-secondary dashboard-task-filter" style="padding:4px 10px; font-size:0.75rem;" onclick="filterDashboardTasks('completed', this)" data-i18n="filter_completed">Completed</button>
+                                </div>
+                            </div>
+                            <div class="dashboard-table-wrapper" style="max-height:420px; overflow:auto;">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-i18n="th_task">Task</th>
+                                            <th data-i18n="th_project">Project</th>
+                                            <th data-i18n="th_assignee">Assignee</th>
+                                            <th data-i18n="th_due">Due</th>
+                                            <th data-i18n="th_priority">Priority</th>
+                                            <th data-i18n="th_status">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dashboard-tasks-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="detail-panel">
+                            <div class="panel-header"><h2 data-i18n="panel_progress">Progress</h2></div>
+                            <div class="progress-list" id="dashboard-projects-progress"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCREEN: PROJECTS -->
+                <div id="screen-projects" class="app-screen">
+                    <div class="screen-header">
+                        <h2 style="font-size:1.25rem; font-weight:700;" data-i18n="all_projects_title">All Projects</h2>
+                        <button class="btn btn-primary" onclick="openModal('new-project-modal')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span data-i18n="btn_new_project">New Project</span>
+                        </button>
+                    </div>
+                    <div class="projects-grid" id="projects-grid-list"></div>
+                </div>
+
+                <!-- SCREEN: PROJECT WORKSPACE -->
+                <div id="screen-project-workspace" class="app-screen">
+                    <div class="workspace-tabs">
+                        <button class="tab-btn active" data-tab="dashboard" data-i18n="tab_overview">Overview</button>
+                        <button class="tab-btn" data-tab="tasks" data-i18n="tab_tasks">Tasks</button>
+                        <button class="tab-btn" data-tab="board" data-i18n="tab_board">Board</button>
+                        <button class="tab-btn" data-tab="gantt" data-i18n="tab_gantt">Gantt</button>
+                        <button class="tab-btn" data-tab="milestones" data-i18n="tab_milestones">Milestones</button>
+                        <button class="tab-btn" data-tab="timesheet" data-i18n="tab_timesheet">Timesheet</button>
+                        <button class="tab-btn" data-tab="billing" data-i18n="tab_billing">Billing</button>
+                    </div>
+                    <div class="workspace-content">
+                        <!-- Tab: Overview -->
+                        <div class="workspace-pane active" id="pane-dashboard">
+                            <div class="workspace-dashboard-grid">
+                                <div class="detail-panel"><div class="panel-header"><h2 data-i18n="task_breakdown">Task Breakdown</h2></div>
+                                    <div style="display:flex;flex-direction:column;gap:16px;justify-content:center;height:100%;padding:10px 0;">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:500;"><span data-i18n="status_todo">To Do</span><span class="badge badge-todo" id="w-todo-count">0</span></div>
+                                        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:500;"><span data-i18n="status_in_progress">In Progress</span><span class="badge badge-progress" id="w-progress-count">0</span></div>
+                                        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:500;"><span data-i18n="status_done">Completed</span><span class="badge badge-done" id="w-done-count">0</span></div>
+                                    </div>
+                                </div>
+                                <div class="detail-panel"><div class="panel-header"><h2 data-i18n="stat_milestones">Milestones</h2></div>
+                                    <div style="display:flex;flex-direction:column;gap:12px;" id="w-milestone-progress-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tab: Tasks -->
+                        <div class="workspace-pane" id="pane-tasks">
+                            <div class="task-actions">
+                                <h3 style="font-size:1.1rem; font-weight:700;" data-i18n="tab_tasks">Tasks</h3>
+                                <div style="display:flex;gap:10px;">
+                                    <button class="btn btn-secondary" onclick="exportTasksToCSV()" title="Export CSV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="btn_export">Export</span></button>
+                                    <button class="btn btn-primary" onclick="openAddTaskModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> <span data-i18n="btn_add_task">Add Task</span></button>
+                                </div>
+                            </div>
+                            <div class="task-filters-bar" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+                                <input type="text" id="task-search-input" class="form-control" style="flex:1;min-width:180px;" placeholder="🔍 Search tasks…" oninput="renderFilteredProjectTasks()">
+                                <select id="task-filter-status" class="form-control" style="width:auto;" onchange="renderFilteredProjectTasks()">
+                                    <option value="">All Status</option>
+                                    <option value="todo">To Do</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                                <select id="task-filter-priority" class="form-control" style="width:auto;" onchange="renderFilteredProjectTasks()">
+                                    <option value="">All Priority</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div class="task-list" id="w-task-list-container"></div>
+                        </div>
+                        <!-- Tab: Board -->
+                        <div class="workspace-pane" id="pane-board">
+                            <div class="kanban-grid">
+                                <div class="kanban-column" data-status="todo" ondragover="allowDrop(event)" ondrop="handleDrop(event)"><div class="kanban-column-header"><span data-i18n="status_todo">To Do</span><span class="kanban-column-count" id="kanban-todo-count">0</span></div><div class="kanban-cards-wrapper" id="kanban-column-todo"></div></div>
+                                <div class="kanban-column" data-status="in_progress" ondragover="allowDrop(event)" ondrop="handleDrop(event)"><div class="kanban-column-header"><span data-i18n="status_in_progress">In Progress</span><span class="kanban-column-count" id="kanban-progress-count">0</span></div><div class="kanban-cards-wrapper" id="kanban-column-progress"></div></div>
+                                <div class="kanban-column" data-status="completed" ondragover="allowDrop(event)" ondrop="handleDrop(event)"><div class="kanban-column-header"><span data-i18n="status_done">Done</span><span class="kanban-column-count" id="kanban-completed-count">0</span></div><div class="kanban-cards-wrapper" id="kanban-column-completed"></div></div>
+                            </div>
+                        </div>
+                        <!-- Tab: Gantt -->
+                        <div class="workspace-pane" id="pane-gantt">
+                            <div class="gantt-container">
+                                <div class="gantt-header"><div class="gantt-title" data-i18n="gantt_schedule">Schedule</div><div class="gantt-view-toggles"><button class="gantt-view-btn active" data-zoom="day" data-i18n="zoom_day">Day</button><button class="gantt-view-btn" data-zoom="week" data-i18n="zoom_week">Week</button><button class="gantt-view-btn" data-zoom="month" data-i18n="zoom_month">Month</button></div></div>
+                                <div class="gantt-workspace" id="gantt-workspace-render"></div>
+                            </div>
+                        </div>
+                        <!-- Tab: Milestones -->
+                        <div class="workspace-pane" id="pane-milestones">
+                            <div class="milestones-header"><h3 style="font-size:1.1rem; font-weight:700;" data-i18n="tab_milestones">Milestones</h3><button class="btn btn-primary" onclick="openAddMilestoneModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> <span data-i18n="btn_add_milestone">Add Milestone</span></button></div>
+                            <div class="milestones-list" id="w-milestones-container"></div>
+                        </div>
+                        <!-- Tab: Timesheet -->
+                        <div class="workspace-pane" id="pane-timesheet">
+                            <div class="timesheet-actions"><h3 style="font-size:1.1rem; font-weight:700;" data-i18n="tab_timesheet">Time Log</h3><button class="btn btn-primary" onclick="openAddTimesheetModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span data-i18n="btn_log_time">Log Time</span></button></div>
+                            <div class="timesheet-table-wrapper"><table class="timesheet-table"><thead><tr><th data-i18n="th_date">Date</th><th data-i18n="th_task">Task</th><th data-i18n="th_desc">Description</th><th data-i18n="th_user">User</th><th data-i18n="th_status">Status</th><th data-i18n="th_hours">Hours</th><th></th></tr></thead><tbody id="w-timesheet-tbody"></tbody></table></div>
+                        </div>
+                        <!-- Tab: Billing -->
+                        <div class="workspace-pane" id="pane-billing">
+                            <div class="billing-split">
+                                <div class="detail-panel"><div class="panel-header"><h2 data-i18n="invoices_title">Invoices</h2><div style="display:flex;gap:10px;"><button class="btn btn-secondary admin-manager-only" onclick="openSetRateModal()" title="Set Hourly Rate"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> <span data-i18n="btn_set_rate">Set Rate</span></button><button class="btn btn-secondary" onclick="exportInvoicesToCSV()" title="Export CSV"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="btn_export">Export</span></button><button class="btn btn-primary" onclick="openCreateInvoiceModal()" data-i18n="btn_create_invoice">Create Invoice</button></div></div><div class="invoice-list" id="w-invoice-list-container"></div></div>
+                                <div class="detail-panel"><div class="panel-header"><h2 data-i18n="summary_title">Summary</h2></div>
+                                    <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px;font-size:0.95rem;">
+                                        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-color);padding-bottom:12px;"><span data-i18n="bill_unpaid_rev">Unpaid Revenue</span><span style="font-weight:700;color:var(--warning);" id="bill-unpaid-amount">$0.00</span></div>
+                                        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-color);padding-bottom:12px;"><span data-i18n="bill_paid_rev">Paid Revenue</span><span style="font-weight:700;color:var(--success);" id="bill-paid-amount">$0.00</span></div>
+                                        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-color);padding-bottom:12px;"><span data-i18n="bill_unbilled">Unbilled Hours</span><span style="font-weight:600;color:var(--info);" id="bill-unbilled-hours">0 hrs</span></div>
+                                        <div style="display:flex;justify-content:space-between;"><span data-i18n="bill_rate">Standard Rate</span><span style="font-weight:700;color:var(--accent);cursor:pointer;" id="bill-rate-display" onclick="openSetRateModal()" title="Click to change standard rate">$50.00 / hr</span></div>
+                                    </div>
+                                    <button class="btn btn-secondary" style="margin-top:20px;width:100%;justify-content:center;" onclick="openCreateInvoiceModal()" data-i18n="btn_quick_bill">⚡ Bill Unbilled Hours</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCREEN: SETTINGS -->
+                <div id="screen-settings" class="app-screen">
+                    <div class="settings-wrapper">
+                        <h2 style="margin-bottom:24px; font-size:1.25rem; font-weight:700;" data-i18n="profile_settings_title">Profile Settings</h2>
+                        <form id="settings-profile-form">
+                            <div class="avatar-picker" style="flex-wrap:wrap; align-items:center;">
+                                <div id="settings-avatar-preview" class="avatar-preview-lg" style="overflow:hidden; position:relative; flex-shrink:0;">AD</div>
+                                <div style="flex-grow:1; min-width:200px;">
+                                    <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:8px;" data-i18n="avatar_color_label">Avatar Color & Photo</label>
+                                    <div class="avatar-color-options" style="margin-bottom:12px;">
+                                        <div class="color-circle selected" data-color="#2684FF" style="background:#2684FF;"></div>
+                                        <div class="color-circle" data-color="#10b981" style="background:#10b981;"></div>
+                                        <div class="color-circle" data-color="#f59e0b" style="background:#f59e0b;"></div>
+                                        <div class="color-circle" data-color="#ef4444" style="background:#ef4444;"></div>
+                                        <div class="color-circle" data-color="#3b82f6" style="background:#3b82f6;"></div>
+                                        <div class="color-circle" data-color="#8b5cf6" style="background:#8b5cf6;"></div>
+                                    </div>
+                                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                        <input type="file" id="settings-avatar-fileInput" accept="image/*" style="display:none;" onchange="handleProfileImageSelect(event)">
+                                        <button type="button" class="btn btn-secondary" style="padding:6px 12px; font-size:0.8rem;" onclick="document.getElementById('settings-avatar-fileInput').click()">📷 <span data-i18n="btn_upload_photo">Upload Photo / อัปโหลดรูป</span></button>
+                                        <button type="button" class="btn btn-ghost" style="padding:6px 10px; font-size:0.8rem; color:var(--danger); display:none;" onclick="removeProfilePhoto()" id="btn-remove-photo">🗑️ <span data-i18n="btn_remove_photo">Remove Photo</span></button>
+                                    </div>
+                                    <input type="hidden" id="settings-avatar-url-input" value="">
+                                </div>
+                            </div>
+                            <div class="form-group"><label for="settings-fullname" data-i18n="full_name_label">Full Name</label><input type="text" id="settings-fullname" class="form-control" maxlength="100" required></div>
+                            <div class="form-group"><label for="settings-email" data-i18n="email_readonly_label">Email (read-only)</label><input type="email" id="settings-email" class="form-control" readonly style="opacity:0.6;cursor:not-allowed;"></div>
+                            <button type="submit" class="btn btn-primary" style="margin-top:12px; height:42px;" data-i18n="btn_save_changes">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SCREEN: EXECUTIVE DASHBOARD -->
+                <div id="screen-executive-dashboard" class="app-screen">
+                    <div class="screen-header" style="margin-bottom:24px;">
+                        <div>
+                            <h2 style="font-size:1.35rem; font-weight:700; color:var(--text-primary); margin-bottom:4px;" data-i18n="exec_title">Executive Portfolio Dashboard</h2>
+                            <p style="font-size:0.88rem; color:var(--text-secondary);" data-i18n="exec_subtitle">High-level portfolio health, revenue tracking, and team workload distribution across all projects.</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="loadExecutiveDashboard()" style="height:38px; font-size:0.85rem;">
+                            <span>🔄</span> <span data-i18n="btn_refresh">Refresh</span>
+                        </button>
+                    </div>
+
+                    <!-- KPI Ribbon -->
+                    <div class="exec-kpi-ribbon" id="exec-kpi-container">
+                        <div class="exec-kpi-card"><span class="kpi-label" data-i18n="kpi_projects">Total Projects</span><div class="kpi-value" id="kpi-projects">0</div></div>
+                        <div class="exec-kpi-card"><span class="kpi-label" data-i18n="kpi_tasks">Total Tasks</span><div class="kpi-value" id="kpi-tasks">0</div></div>
+                        <div class="exec-kpi-card"><span class="kpi-label" data-i18n="kpi_completion">Overall Completion</span><div class="kpi-value text-success" id="kpi-completion">0%</div></div>
+                        <div class="exec-kpi-card"><span class="kpi-label" data-i18n="kpi_hours">Total Logged Hours</span><div class="kpi-value text-info" id="kpi-hours">0 hrs</div></div>
+                        <div class="exec-kpi-card"><span class="kpi-label" data-i18n="kpi_revenue">Total Revenue</span><div class="kpi-value text-accent" id="kpi-revenue">$0.00</div></div>
+                    </div>
+
+                    <!-- Project Health Grid -->
+                    <div style="margin-bottom:32px;">
+                        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                            <span>📌</span> <span data-i18n="exec_health_title">Project Health Roster</span>
+                        </h3>
+                        <div class="exec-projects-grid" id="exec-project-health-grid"></div>
+                    </div>
+
+                    <!-- Team Workload Distribution Table -->
+                    <div style="margin-bottom:32px;">
+                        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                            <span>⚖️</span> <span data-i18n="exec_workload_title">Team Workload Distribution Matrix</span>
+                        </h3>
+                        <div class="timesheet-table-wrapper">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="th_employee">Employee</th>
+                                        <th data-i18n="th_role_dept">Role & Department</th>
+                                        <th data-i18n="th_reports_to">Reports To (Manager)</th>
+                                        <th data-i18n="th_active_tasks">Active Tasks</th>
+                                        <th data-i18n="th_completed_tasks">Completed</th>
+                                        <th data-i18n="th_efficiency">Efficiency</th>
+                                        <th data-i18n="th_logged_hours">Logged Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="exec-workload-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCREEN: TEAM MANAGEMENT -->
+                <div id="screen-team-management" class="app-screen">
+                    <div class="screen-header" style="margin-bottom:24px;">
+                        <div>
+                            <h2 style="font-size:1.35rem; font-weight:700; color:var(--text-primary); margin-bottom:4px;" data-i18n="team_title">Organization & Team Hierarchy</h2>
+                            <p style="font-size:0.88rem; color:var(--text-secondary);" data-i18n="team_subtitle">Define employee roles (Admin, Manager, Member), reporting structures, and assign organizational responsibilities.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openCreateUserModal()">
+                            <span>👤+</span> <span data-i18n="btn_add_member">Add Team Member</span>
+                        </button>
+                    </div>
+
+                    <!-- Team Hierarchy Org Roster -->
+                    <div class="timesheet-table-wrapper">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_employee">Team Member</th>
+                                    <th data-i18n="th_title">Job Title</th>
+                                    <th data-i18n="th_dept">Department</th>
+                                    <th data-i18n="th_role">Role Level</th>
+                                    <th data-i18n="th_supervisor">Supervisor / Manager</th>
+                                    <th style="text-align:right;" data-i18n="th_actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="team-roster-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Bottom Navigation Bar for Mobile -->
+        <nav class="mobile-bottom-nav">
+            <a class="mobile-nav-item active" data-screen="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                <span data-i18n="menu_dashboard">Dashboard</span>
+            </a>
+            <a class="mobile-nav-item" data-screen="executive-dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                <span data-i18n="menu_exec_dashboard_short">Exec</span>
+            </a>
+            <a class="mobile-nav-item" data-screen="projects">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span data-i18n="menu_projects">Projects</span>
+            </a>
+            <a class="mobile-nav-item" data-screen="team-management">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span data-i18n="menu_team_short">Team</span>
+            </a>
+            <a class="mobile-nav-item" data-screen="settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l-.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span data-i18n="menu_settings">Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- =============== MODALS =============== -->
+
+    <!-- Modal: New Workspace -->
+    <div id="new-workspace-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'new-workspace-modal')"><div class="modal-content"><div class="modal-header"><h3 data-i18n="modal_new_ws">New Workspace</h3><button class="btn-icon" onclick="closeModal('new-workspace-modal')">&times;</button></div><form id="new-workspace-form"><div class="modal-body"><div class="form-group"><label for="workspace-name" data-i18n="ws_name_label">Workspace Name</label><input type="text" id="workspace-name" class="form-control" placeholder="e.g. Acme Corp" maxlength="80" required></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('new-workspace-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" class="btn btn-primary" data-i18n="btn_create">Create</button></div></form></div></div>
+
+    <!-- Modal: New Project -->
+    <div id="new-project-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'new-project-modal')"><div class="modal-content"><div class="modal-header"><h3 data-i18n="modal_new_proj">New Project</h3><button class="btn-icon" onclick="closeModal('new-project-modal')">&times;</button></div><form id="new-project-form"><div class="modal-body"><div class="form-group"><label for="project-name" data-i18n="proj_name_label">Project Name</label><input type="text" id="project-name" class="form-control" placeholder="e.g. Website Redesign" maxlength="100" required></div><div class="form-group"><label for="project-desc" data-i18n="proj_desc_label">Description</label><textarea id="project-desc" class="form-control" rows="3" placeholder="Brief project description…" maxlength="500" required></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('new-project-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" class="btn btn-primary" data-i18n="btn_create">Create</button></div></form></div></div>
+
+    <!-- Modal: New Task -->
+    <div id="new-task-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'new-task-modal')"><div class="modal-content"><div class="modal-header"><h3 id="task-modal-title" data-i18n="modal_add_task">Add Task</h3><button class="btn-icon" onclick="closeModal('new-task-modal')">&times;</button></div><form id="new-task-form"><div class="modal-body">
+        <input type="hidden" id="task-edit-id" value="">
+        <div class="form-group"><label for="task-name" data-i18n="task_name_label">Task Name</label><input type="text" id="task-name" class="form-control" placeholder="e.g. Design Wireframes" maxlength="150" required></div>
+        <div class="form-group"><label for="task-priority" data-i18n="th_priority">Priority</label><select id="task-priority" class="form-control"><option value="low" data-i18n="pri_low">Low</option><option value="medium" selected data-i18n="pri_med">Medium</option><option value="high" data-i18n="pri_high">High</option></select></div>
+        <div class="form-group"><label for="task-start" data-i18n="th_start">Start Date (optional)</label><input type="date" id="task-start" class="form-control"></div>
+        <div class="form-group"><label for="task-due" data-i18n="th_due">Due Date</label><input type="date" id="task-due" class="form-control" required></div>
+        <div class="form-group"><label for="task-assignee" data-i18n="th_assignee">Assignee (ผู้รับผิดชอบ)</label><select id="task-assignee" class="form-control"><option value="">Unassigned</option></select></div>
+        <div class="form-group"><label for="task-milestone" data-i18n="milestone_opt_label">Milestone (optional)</label><select id="task-milestone" class="form-control"><option value="">None</option></select></div>
+        <div class="form-group"><label for="task-recurring" data-i18n="recurrence_label">Recurrence</label><select id="task-recurring" class="form-control"><option value="none" data-i18n="recur_none">One-time</option><option value="daily" data-i18n="recur_daily">Daily</option><option value="weekly" data-i18n="recur_weekly">Weekly</option><option value="monthly" data-i18n="recur_monthly">Monthly</option></select></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('new-task-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" id="task-modal-submit-btn" class="btn btn-primary" data-i18n="btn_add_task">Add Task</button></div></form></div></div>
+
+    <!-- Modal: New Milestone -->
+    <div id="new-milestone-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'new-milestone-modal')"><div class="modal-content"><div class="modal-header"><h3 id="milestone-modal-title" data-i18n="modal_add_ms">Add Milestone</h3><button class="btn-icon" onclick="closeModal('new-milestone-modal')">&times;</button></div><form id="new-milestone-form"><div class="modal-body"><input type="hidden" id="milestone-edit-id" value=""><div class="form-group"><label for="milestone-name" data-i18n="ms_title_label">Milestone Title</label><input type="text" id="milestone-name" class="form-control" placeholder="e.g. Phase 1 Complete" maxlength="100" required></div><div class="form-group"><label for="milestone-date" data-i18n="target_date_label">Target Date</label><input type="date" id="milestone-date" class="form-control" required></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('new-milestone-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" id="milestone-modal-submit-btn" class="btn btn-primary" data-i18n="btn_add">Add</button></div></form></div></div>
+
+    <!-- Modal: Log Time -->
+    <div id="new-timesheet-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'new-timesheet-modal')"><div class="modal-content"><div class="modal-header"><h3 id="timesheet-modal-title" data-i18n="modal_log_time">Log Time</h3><button class="btn-icon" onclick="closeModal('new-timesheet-modal')">&times;</button></div><form id="new-timesheet-form"><div class="modal-body">
+        <input type="hidden" id="timesheet-edit-id" value="">
+        <div class="form-group"><label for="timesheet-task" data-i18n="th_task">Task</label><select id="timesheet-task" class="form-control" required></select></div>
+        <div class="form-group"><label for="timesheet-hours" data-i18n="th_hours">Hours</label><input type="number" id="timesheet-hours" class="form-control" min="0.5" step="0.5" placeholder="e.g. 4" required></div>
+        <div class="form-group"><label for="timesheet-date" data-i18n="th_date">Date</label><input type="date" id="timesheet-date" class="form-control" required></div>
+        <div class="form-group"><label for="timesheet-notes" data-i18n="notes_label">Notes</label><textarea id="timesheet-notes" class="form-control" rows="2" placeholder="What did you work on?" maxlength="400" required></textarea></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('new-timesheet-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" id="timesheet-modal-submit-btn" class="btn btn-primary" data-i18n="btn_log_entry">Log Entry</button></div></form></div></div>
+
+    <!-- Modal: Create Invoice -->
+    <div id="new-invoice-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'new-invoice-modal')"><div class="modal-content" style="width:720px;max-width:96vw;"><div class="modal-header"><h3 id="invoice-modal-title" data-i18n="modal_create_inv">Create Enterprise Invoice</h3><button class="btn-icon" onclick="closeModal('new-invoice-modal')">&times;</button></div><form id="new-invoice-form"><div class="modal-body" style="max-height:75vh;">
+        <input type="hidden" id="invoice-edit-id" value="">
+        <div style="background:var(--bg-elevated);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:12px;margin-bottom:14px;">
+            <div style="font-weight:600;font-size:0.82rem;color:var(--accent);margin-bottom:8px;">🏢 ISSUER COMPANY / ผู้ออกบิล (บริษัทของคุณ)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div class="form-group" style="margin-bottom:0;"><label for="invoice-issuer-name">Company Name / ชื่อบริษัทผู้ออกบิล</label><input type="text" id="invoice-issuer-name" class="form-control" placeholder="AG PROJECTS CO., LTD." maxlength="150"></div>
+                <div class="form-group" style="margin-bottom:0;"><label for="invoice-issuer-addr">Address & Tax ID / ที่อยู่และเลขผู้เสียภาษี</label><input type="text" id="invoice-issuer-addr" class="form-control" placeholder="123 Tech Tower, Bangkok (Tax ID: 0105550001234)" maxlength="300"></div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;">
+            <div class="form-group"><label for="invoice-client" data-i18n="client_name_label">Client Name / Company</label><input type="text" id="invoice-client" class="form-control" placeholder="e.g. Acme Corp Co., Ltd." maxlength="150" required></div>
+            <div class="form-group"><label for="invoice-client-addr" data-i18n="client_addr_label">Client Address & Tax ID</label><input type="text" id="invoice-client-addr" class="form-control" placeholder="e.g. 123 Sukhumvit Rd, Bangkok (Tax ID: 0105550001111)" maxlength="300"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px;">
+            <div class="form-group"><label for="invoice-date" data-i18n="inv_issue_date">Issue Date</label><input type="date" id="invoice-date" class="form-control" required></div>
+            <div class="form-group"><label for="invoice-due-date" data-i18n="inv_due_date">Due Date</label><input type="date" id="invoice-due-date" class="form-control" required></div>
+        </div>
+
+        <div id="inv-unbilled-section" style="margin-bottom:18px;border:1px solid var(--border-color);border-radius:var(--radius-md);padding:12px;background:var(--bg-base);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:600;font-size:0.88rem;color:var(--text-primary);">
+                <span data-i18n="unbilled_timesheets_checklist">⏱️ Include Unbilled Timesheets</span>
+                <span class="badge badge-progress" id="inv-unbilled-count">0 found</span>
+            </div>
+            <div id="inv-unbilled-list" style="max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:0.82rem;"></div>
+        </div>
+
+        <div style="margin-bottom:18px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <label style="font-weight:600;font-size:0.88rem;color:var(--text-primary);" data-i18n="inv_line_items">📦 Line Items Breakdown</label>
+                <button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:0.78rem;" onclick="addInvoiceLineItem()" data-i18n="btn_add_line_item">➕ Add Item</button>
+            </div>
+            <div style="overflow-x:auto;border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                <table class="dashboard-table" style="margin:0;">
+                    <thead><tr><th style="width:45%;" data-i18n="th_desc">Description</th><th style="width:18%;" data-i18n="th_hours">Qty/Hours</th><th style="width:20%;" data-i18n="th_rate">Rate ($)</th><th style="width:17%;text-align:right;" data-i18n="th_amount">Amount</th><th></th></tr></thead>
+                    <tbody id="inv-items-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px;align-items:start;">
+            <div class="form-group"><label for="invoice-notes" data-i18n="notes_label">Payment Terms & Bank Info</label><textarea id="invoice-notes" class="form-control" rows="3" placeholder="e.g. Bank Transfer: Kasikorn Bank A/C 123-4-56789-0" maxlength="500"></textarea></div>
+            <div style="background:var(--bg-elevated);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:14px;font-size:0.88rem;display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span data-i18n="inv_subtotal">Subtotal:</span>
+                    <span style="font-weight:600;" id="inv-subtotal-display">$0.00</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span data-i18n="inv_discount">Discount ($):</span>
+                    <input type="number" id="invoice-discount" class="form-control" style="width:80px;padding:4px 8px;text-align:right;" min="0" step="1" value="0" oninput="calculateInvoiceTotals()">
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span data-i18n="inv_tax_rate">Tax / VAT (%):</span>
+                    <select id="invoice-tax-rate" class="form-control" style="width:80px;padding:4px 8px;" onchange="calculateInvoiceTotals()">
+                        <option value="0">0%</option>
+                        <option value="7" selected>7% VAT</option>
+                        <option value="10">10%</option>
+                    </select>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border-color);padding-top:10px;font-size:1.05rem;font-weight:800;color:var(--accent);">
+                    <span data-i18n="inv_grand_total">Grand Total:</span>
+                    <span id="inv-grandtotal-display">$0.00</span>
+                </div>
+            </div>
+        </div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('new-invoice-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" id="invoice-modal-submit-btn" class="btn btn-primary" data-i18n="btn_generate_inv">Generate Invoice</button></div></form></div></div>
+
+    <!-- Modal: Invoice Preview -->
+    <div id="invoice-preview-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'invoice-preview-modal')"><div class="modal-content" style="width:840px;max-width:96vw;"><div class="modal-header" style="background:var(--bg-elevated);border-bottom:1px solid var(--border-color);"><h3 style="color:var(--text-primary);font-weight:700;" data-i18n="invoice_title">Enterprise Tax Invoice Preview</h3><div style="display:flex;gap:8px;align-items:center;"><button type="button" class="btn btn-secondary" onclick="editIssuerAddressFromPreview()" style="padding:6px 12px;font-size:0.82rem;">🏢 เปลี่ยนที่อยู่บริษัท</button><select id="preview-inv-status" class="form-control" style="width:140px;padding:6px 10px;font-size:0.82rem;font-weight:600;" onchange="changeInvoiceStatusFromPreview()"><option value="unpaid">🟡 Unpaid / รอชำระ</option><option value="paid">🟢 Paid / ชำระแล้ว</option><option value="overdue">🔴 Overdue / เกินกำหนด</option><option value="cancelled">⚪ Cancelled / ยกเลิก</option></select><button class="btn btn-primary" onclick="window.print()" style="padding:6px 14px;font-size:0.82rem;" data-i18n="btn_print">🖨️ Print / Save PDF</button><button class="btn-icon" onclick="closeModal('invoice-preview-modal')" style="font-size:1.4rem;margin-left:4px;">&times;</button></div></div><div class="modal-body" style="padding:0;background:var(--bg-base);max-height:80vh;"><div class="invoice-preview-wrapper" id="invoice-render-area"></div></div></div></div>
+
+    <!-- Modal: Task Details (Comments + Attachments) -->
+    <div id="task-detail-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'task-detail-modal')"><div class="modal-content" style="width:600px;"><div class="modal-header"><h3 id="td-task-name" style="font-weight:700;">Task Details</h3><div style="display:flex;gap:8px;align-items:center;"><button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:0.78rem;" onclick="openEditTaskModal(currentTaskDetailId)">✏️ Edit</button><button type="button" class="btn btn-danger" style="padding:4px 10px;font-size:0.78rem;" onclick="deleteCurrentTask()">🗑️ Delete</button><button class="btn-icon" onclick="closeModal('task-detail-modal')">&times;</button></div></div><div class="modal-body">
+        <div style="display:flex;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border-color);font-size:0.88rem;color:var(--text-secondary);flex-wrap:wrap;gap:12px;">
+            <div><span data-i18n="th_priority">Priority</span>: <span id="td-task-priority" class="badge">—</span></div>
+            <div><span data-i18n="th_due">Due</span>: <span id="td-task-due" style="font-weight:600;color:var(--text-primary);">—</span></div>
+            <div><span data-i18n="th_assignee">Assignee</span>: <span id="td-task-assignee" class="assignee-pill" style="display:inline-flex;">—</span></div>
+            <div><span data-i18n="recurrence_label">Recurrence</span>: <span id="td-task-recur" style="font-weight:600;color:var(--info);">None</span></div>
+        </div>
+        <!-- Attachments -->
+        <div style="margin-bottom:26px;">
+            <h4 style="font-size:0.92rem;margin-bottom:10px;display:flex;align-items:center;gap:6px;font-weight:600;color:var(--text-primary);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <span data-i18n="attachments_title">Attachments</span>
+            </h4>
+            <div id="td-attachments-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+            <form id="td-upload-form" style="display:flex;gap:10px;"><input type="file" id="td-file-input" class="form-control" style="padding:6px;font-size:0.82rem;" required><button type="submit" class="btn btn-secondary" style="font-size:0.82rem;padding:6px 14px;" data-i18n="btn_upload">Upload</button></form>
+        </div>
+        <!-- Comments -->
+        <div>
+            <h4 style="font-size:0.92rem;margin-bottom:10px;display:flex;align-items:center;gap:6px;font-weight:600;color:var(--text-primary);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span data-i18n="comments_title">Comments</span>
+            </h4>
+            <div id="td-comments-list" class="comments-stream-container"></div>
+            <form id="td-comment-form" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;"><textarea id="td-comment-input" class="form-control" rows="2" placeholder="Write a comment…" maxlength="1000" required></textarea><button type="submit" class="btn btn-primary" style="align-self:flex-end;font-size:0.82rem;padding:6px 16px;" data-i18n="btn_post">Post</button></form>
+        </div>
+    </div></div></div>
+
+    <!-- Modal: Create/Edit User -->
+    <div id="user-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'user-modal')"><div class="modal-content" style="width:520px;"><div class="modal-header"><h3 id="user-modal-title" data-i18n="modal_add_user">Add Team Member</h3><button class="btn-icon" onclick="closeModal('user-modal')">&times;</button></div><form id="user-form"><div class="modal-body">
+        <input type="hidden" id="user-edit-id" value="">
+        <div class="form-group"><label for="user-name" data-i18n="full_name_label">Full Name</label><input type="text" id="user-name" class="form-control" placeholder="e.g. Somchai Dev" maxlength="100" required></div>
+        <div class="form-group"><label for="user-email" data-i18n="email_label">Email Address</label><input type="email" id="user-email" class="form-control" placeholder="e.g. somchai@demo.com" maxlength="150" required></div>
+        <div class="form-group" id="user-password-group"><label for="user-password" data-i18n="password_label">Password</label><input type="password" id="user-password" class="form-control" placeholder="••••••••" value="admin123"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div class="form-group"><label for="user-title" data-i18n="th_title">Job Title</label><input type="text" id="user-title" class="form-control" placeholder="e.g. Senior Frontend Dev" maxlength="80" required></div>
+            <div class="form-group">
+                <label for="user-dept" data-i18n="th_dept">Department</label>
+                <input type="text" id="user-dept" class="form-control" list="dept-options" placeholder="Select or type department…" maxlength="80" required>
+                <datalist id="dept-options">
+                    <option value="Engineering">
+                    <option value="Project Management">
+                    <option value="Quality Assurance">
+                    <option value="Design & UX">
+                    <option value="Executive">
+                    <option value="Sales & Marketing">
+                    <option value="HR & Operations">
+                    <option value="Finance & Accounting">
+                </datalist>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div class="form-group"><label for="user-role" data-i18n="th_role">Role Level</label><select id="user-role" class="form-control"><option value="member" data-i18n="role_member">Team Member</option><option value="manager" data-i18n="role_manager">Supervisor / Manager</option><option value="admin" data-i18n="role_admin">Admin / Executive</option></select></div>
+            <div class="form-group"><label for="user-manager" data-i18n="th_supervisor">Reports To (Supervisor)</label><select id="user-manager" class="form-control"><option value="">Top Level / CEO</option></select></div>
+        </div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('user-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" class="btn btn-primary" data-i18n="btn_save">Save Member</button></div></form></div></div>
+
+    <!-- Modal: Reset User Password -->
+    <div id="reset-password-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'reset-password-modal')"><div class="modal-content" style="width:440px;"><div class="modal-header"><h3 id="reset-modal-title" style="font-weight:700;color:var(--text-primary);" data-i18n="reset_pass_title">Reset User Password</h3><button class="btn-icon" onclick="closeModal('reset-password-modal')">&times;</button></div><form id="reset-password-form"><div class="modal-body">
+        <input type="hidden" id="reset-user-id" value="">
+        <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px;" id="reset-user-desc">Set a new login password for user.</p>
+        <div class="form-group"><label for="reset-new-password" data-i18n="new_password_label">New Password</label><input type="text" id="reset-new-password" class="form-control" placeholder="e.g. admin123 or secretPass" required minlength="4"></div>
+        <button type="button" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:4px;font-size:0.82rem;" onclick="document.getElementById('reset-new-password').value='admin123'" data-i18n="btn_quick_pass">⚡ Quick Set: admin123</button>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('reset-password-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" class="btn btn-primary" data-i18n="btn_save_pass">Save New Password</button></div></form></div></div>
+
+    <!-- Modal: Set Hourly Rate -->
+    <div id="set-rate-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'set-rate-modal')"><div class="modal-content" style="width:420px;"><div class="modal-header"><h3 style="font-weight:700;color:var(--text-primary);" data-i18n="modal_set_rate">⚙️ Set Standard Hourly Rate</h3><button class="btn-icon" onclick="closeModal('set-rate-modal')">&times;</button></div><form id="set-rate-form"><div class="modal-body">
+        <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px;" data-i18n="set_rate_desc">Configure the standard billing rate per hour for this workspace. This rate will be used when automatically calculating unbilled timesheets and generating new invoices.</p>
+        <div class="form-group"><label for="workspace-hourly-rate" data-i18n="hourly_rate_label">Standard Rate ($ / hr)</label><input type="number" id="workspace-hourly-rate" class="form-control" min="1" step="0.5" required></div>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('set-rate-modal')" data-i18n="btn_cancel">Cancel</button><button type="submit" class="btn btn-primary" data-i18n="btn_save">Save Rate</button></div></form></div></div>
+
+    <!-- Modal: Generic Confirm Dialog -->
+    <div id="confirm-modal" class="modal-overlay" onclick="closeModalOnOverlay(event,'confirm-modal')"><div class="modal-content" style="width:420px;"><div class="modal-header"><h3 id="confirm-modal-title" style="font-weight:700;color:var(--text-primary);">⚠️ Please Confirm</h3><button class="btn-icon" onclick="resolveConfirmDialog(false)">&times;</button></div><div class="modal-body">
+        <p id="confirm-modal-message" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.5;">Are you sure?</p>
+    </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="resolveConfirmDialog(false)" id="confirm-modal-cancel">Cancel</button><button type="button" class="btn btn-danger" onclick="resolveConfirmDialog(true)" id="confirm-modal-ok">Confirm</button></div></div></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

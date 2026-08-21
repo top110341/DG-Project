@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>คู่มือการนำระบบขึ้นใช้งานจริง (Production Deployment Guide)</title>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+@page {
+  size: A4;
+  margin: 20mm 15mm 20mm 15mm;
+}
+body {
+  font-family: 'Sarabun', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
+  line-height: 1.65;
+  font-size: 14px;
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  font-size: 26px;
+  color: #1d4ed8;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 8px;
+  margin-top: 0;
+}
+h2 {
+  font-size: 20px;
+  color: #0f172a;
+  margin-top: 28px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 6px;
+}
+h3 {
+  font-size: 16px;
+  color: #2563eb;
+  margin-top: 20px;
+}
+p, li {
+  color: #334155;
+}
+ul, ol {
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 6px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 10px 12px;
+  text-align: left;
+}
+th {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 600;
+}
+tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+blockquote {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  margin: 16px 0;
+  padding: 12px 16px;
+  color: #1e3a8a;
+  border-radius: 0 8px 8px 0;
+}
+code {
+  background: #f1f5f9;
+  color: #dc2626;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 24px 0;
+}
+.footer {
+  margin-top: 40px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+  <h1>🚀 คู่มือการนำระบบขึ้นใช้งานจริง (Production Deployment Guide)</h1>
+<p><strong>ระบบบริหารจัดการโครงการองค์กร (AG Projects Enterprise — Zoho Projects Clone)</strong></p>
+<hr>
+<h2>📌 ข้อมูลจำเพาะทางเทคนิคของระบบ (System Architecture)</h2>
+<p>ก่อนนำระบบขึ้นสู่เซิร์ฟเวอร์จริง (Production) ควรทำความเข้าใจโครงสร้างของแอปพลิเคชัน:</p>
+<ol>
+<li><strong>Backend</strong>: Node.js (Express.js) รันบนพอร์ตมาตรฐาน <code>3000</code></li>
+<li><strong>Database</strong>: SQLite 3 เก็บข้อมูลในไฟล์ <code>zoho_tracker.db</code> (แบบ Local File Database)</li>
+<li><strong>File Storage</strong>: เก็บไฟล์แนบงานต่างๆ ในโฟลเดอร์ <code>uploads/</code></li>
+<li><strong>Authentication</strong>: รองรับทั้ง Local Email/Password และ Microsoft OAuth (MSAL.js / Azure AD)</li>
+<li><strong>Frontend</strong>: Pure HTML5, Vanilla CSS (Design System), and Vanilla JavaScript (SPA)</li>
+</ol>
+<hr>
+<h2>⚠️ ข้อควรระวังสำคัญที่สุดสำหรับระบบ SQLite (Critical Warning)</h2>
+<p>เนื่องจากระบบใช้ฐานข้อมูล <strong>SQLite</strong> ซึ่งบันทึกข้อมูลทั้งหมดลงในไฟล์ <code>zoho_tracker.db</code> บนเครื่องเซิร์ฟเวอร์โดยตรง:</p>
+<ul>
+<li><strong>ห้าม Deploy บน Serverless Cloud แบบไร้ Disk</strong> (เช่น Vercel, Netlify, AWS Lambda, Heroku แบบไม่ต่อ Disk) เนื่องจากเมื่อ Serverless ทำการ Restart หรือ Sleep <strong>ไฟล์ข้อมูลทั้งหมดจะหายไป (Data Loss)!</strong></li>
+<li><strong>วิธีที่ถูกต้อง</strong>: ต้อง Deploy บน <strong>VPS (Virtual Private Server)</strong>, <strong>Dedicated Linux Server</strong> หรือใช้ <strong>Docker Container ที่มีการต่อ Mounted Volume / Persistent Disk</strong> เท่านั้น</li>
+</ul>
+<hr>
+<h2>🛠️ วิธีที่ 1: การ Deploy บน VPS Linux (Ubuntu 22.04 / 24.04 LTS) ด้วย PM2 และ Nginx</h2>
+<p><strong>✨ (แนะนำที่สุดสำหรับองค์กร — เสถียรที่สุดและจัดการข้อมูล SQLite ได้ปลอดภัย 100%)</strong></p>
+<p>สามารถใช้ผู้ให้บริการ VPS ชั้นนำ เช่น <strong>DigitalOcean, AWS EC2, Google Cloud Compute Engine, Linode, Hostinger VPS</strong> หรือเครื่องเซิร์ฟเวอร์ภายในบริษัท (On-Premises)</p>
+<h3>1.1 เตรียมความพร้อมเซิร์ฟเวอร์และติดตั้ง Node.js</h3>
+<p>เข้าใช้งานเซิร์ฟเวอร์ผ่าน SSH แล้วรันคำสั่งเพื่ออัปเดตระบบและติดตั้ง <strong>Node.js LTS (v20 หรือ v22)</strong>:</p>
+<pre><code class="language-bash"># อัปเดตรายการแพ็กเกจ
+sudo apt update &amp;&amp; sudo apt upgrade -y
+
+# ติดตั้ง Curl และ Git
+sudo apt install curl git build-essential -y
+
+# ติดตั้ง Node.js v20 LTS ผ่าน NodeSource
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# ตรวจสอบเวอร์ชัน (ควรได้ v20.x และ npm v10.x ขึ้นไป)
+node -v
+npm -v
+</code></pre>
+<h3>1.2 ดาวน์โหลดและติดตั้งโค้ดแอปพลิเคชัน</h3>
+<p>สร้างโฟลเดอร์สำหรับแอป และนำโค้ดขึ้นไปบนเซิร์ฟเวอร์ (ผ่าน Git Clone หรือ SFTP):</p>
+<pre><code class="language-bash"># สร้างโฟลเดอร์ใน /var/www
+sudo mkdir -p /var/www/ag-projects
+sudo chown -R $USER:$USER /var/www/ag-projects
+cd /var/www/ag-projects
+
+# คัดลอกโค้ดมาวาง หรือ Git Clone
+# git clone https://github.com/your-org/ag-projects.git .
+
+# ติดตั้ง Dependencies เฉพาะตัวที่ใช้ใน Production
+npm ci --only=production
+
+# สร้างโฟลเดอร์อัปโหลดไฟล์และตั้งสิทธิ์ให้ระบบอ่านเขียนได้
+mkdir -p uploads
+chmod 775 uploads
+</code></pre>
+<h3>1.3 ติดตั้งและจัดการ Process ด้วย PM2</h3>
+<p><strong>PM2</strong> คือ Process Manager ช่วยให้ Node.js ทำงานตลอดเวลา (24/7) แอบทำงานเบื้องหลัง และ Restart อัตโนมัติหากเซิร์ฟเวอร์รีบู้ตหรือแอปสะดุด</p>
+<pre><code class="language-bash"># ติดตั้ง PM2 แบบ Global
+sudo npm install -g pm2
+
+# สั่งเริ่มทำงานแอปพลิเคชันพร้อมตั้งชื่อโปรเซสว่า &quot;ag-projects&quot;
+pm2 start server.js --name &quot;ag-projects&quot; --time
+
+# สั่งให้ PM2 จำสถานะและตั้งค่าให้เริ่มทำงานอัตโนมัติเมื่อ Boot เซิร์ฟเวอร์ใหม่
+pm2 startup
+pm2 save
+
+# คำสั่งสำคัญสำหรับดูแลระบบด้วย PM2
+pm2 status          # ดูสถานะการทำงาน
+pm2 logs ag-projects # ดู Log แบบ Real-time
+pm2 restart ag-projects # สั่งรีสตาร์ทแอป
+</code></pre>
+<h3>1.4 ตั้งค่า Nginx Reverse Proxy และ HTTPS (SSL ฟรีจาก Let&#39;s Encrypt)</h3>
+<p>เราจะใช้ <strong>Nginx</strong> เป็นด่านหน้าในการรับส่งข้อมูลพอร์ต 80 (HTTP) และ 443 (HTTPS) แล้วส่งต่อมาให้ Node.js ที่พอร์ต 3000:</p>
+<pre><code class="language-bash"># ติดตั้ง Nginx และ Certbot (สำหรับทำ SSL Free)
+sudo apt install nginx certbot python3-certbot-nginx -y
+</code></pre>
+<p>สร้างไฟล์ Config ของ Nginx สำหรับโดเมนของคุณ (เช่น <code>projects.yourdomain.com</code>):</p>
+<pre><code class="language-bash">sudo nano /etc/nginx/sites-available/ag-projects
+</code></pre>
+<p>นำค่าคอนฟิกนี้ไปวาง (เปลี่ยน <code>projects.yourdomain.com</code> เป็นชื่อโดเมนจริงของคุณ):</p>
+<pre><code class="language-nginx">server {
+    listen 80;
+    server_name projects.yourdomain.com;
+
+    client_max_body_size 50M; # รองรับการอัปโหลดไฟล์แนบสูงสุด 50MB
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection &#39;upgrade&#39;;
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+</code></pre>
+<p>เปิดใช้งานไซต์และตรวจสอบความถูกต้อง:</p>
+<pre><code class="language-bash"># เปิดใช้งาน Config
+sudo ln -s /etc/nginx/sites-available/ag-projects /etc/nginx/sites-enabled/
+
+# ตรวจสอบว่า Syntax ถูกต้องหรือไม่
+sudo nginx -t
+
+# รีสตาร์ท Nginx
+sudo systemctl reload nginx
+
+# ติดตั้ง SSL Certificate ฟรี (Let&#39;s Encrypt HTTPS)
+sudo certbot --nginx -d projects.yourdomain.com
+</code></pre>
+<p><em>(ระบบจะถามอีเมล ให้ตอบตกลง และเลือกให้ Redirect HTTP -&gt; HTTPS อัตโนมัติ)</em></p>
+<hr>
+<h2>🐳 วิธีที่ 2: การ Deploy ด้วย Docker &amp; Docker Compose (Modern Container setup)</h2>
+<p><strong>✨ (เหมาะสำหรับการนำไปรันบน Cloud Platforms เช่น AWS ECS, Google Cloud Run, Coolify, Portainer, หรือ Server ที่ใช้ Docker)</strong></p>
+<p>ในโครงสร้างโปรเจกต์ เราได้เตรียมไฟล์ <strong><code>Dockerfile</code></strong>, <strong><code>.dockerignore</code></strong>, และ <strong><code>docker-compose.yml</code></strong> ไว้ให้พร้อมใช้งานทันทีครับ!</p>
+<h3>2.1 โครงสร้างไฟล์ Docker ที่เตรียมไว้ให้</h3>
+<ol>
+<li><strong><code>Dockerfile</code></strong>: ใช้ฐานจาก <code>node:20-alpine</code> น้ำหนักเบา พร้อมติดตั้งไลบรารีที่จำเป็นสำหรับ SQLite</li>
+<li><strong><code>docker-compose.yml</code></strong>: มีการตั้งค่า <strong>Persistent Volume (<code>./zoho_tracker.db:/app/zoho_tracker.db</code> และ <code>uploads_data</code>)</strong> ทำให้เมื่อหยุดหรือรีสตาร์ท Container ข้อมูลในฐานข้อมูลไฟล์จะไม่หายไป!</li>
+</ol>
+<h3>2.2 ขั้นตอนการรันด้วย Docker Compose บนเครื่อง Server</h3>
+<p>บนเครื่องเซิร์ฟเวอร์ที่มี Docker และ Docker Compose ติดตั้งอยู่แล้ว:</p>
+<pre><code class="language-bash"># 1. เข้าไปที่โฟลเดอร์โปรเจกต์
+cd /path/to/zoho-project-tracker
+
+# 2. สร้างไฟล์ฐานข้อมูลเปล่าไว้ก่อน (หากยังไม่มี) เพื่อให้ Docker Mount ไม่เกิด Error
+touch zoho_tracker.db
+
+# 3. สั่ง Build และ Run Container แบบ Background
+docker compose up -d --build
+
+# 4. ตรวจสอบสถานะว่า Container ขึ้นรันปกติหรือไม่
+docker compose ps
+docker compose logs -f
+</code></pre>
+<p>ระบบจะเปิดพอร์ต <code>3000</code> ให้เข้าใช้งานทันที! สามารถเอา Nginx มาคลุมด้านหน้าเพื่อต่อ HTTPS ได้ตามขั้นตอน 1.4 ครับ</p>
+<hr>
+<h2>☁️ วิธีที่ 3: การ Deploy บน Cloud Platform บริการสำเร็จรูป (Railway / Render / Fly.io)</h2>
+<p>หากไม่ต้องการจัดการ Linux Server เอง สามารถใช้ PaaS (Platform as a Service) ได้ <strong>แต่ต้องตั้งค่า Persistent Disk / Volume</strong> เสมอ!</p>
+<h3>🚂 การตั้งค่าบน Railway.app (แนะนำสำหรับ PaaS)</h3>
+<ol>
+<li>อัปโหลดโค้ดขึ้น GitHub Repository</li>
+<li>เข้าสู่เว็บ <strong>Railway.app</strong> กด <strong>New Project -&gt; Deploy from GitHub repo</strong></li>
+<li>ไปที่เมนู <strong>Variables</strong> เพิ่มตัวแปรสภาพแวดล้อม:<ul>
+<li><code>NODE_ENV</code> = <code>production</code></li>
+<li><code>PORT</code> = <code>3000</code></li>
+</ul>
+</li>
+<li><strong>🚨 ขั้นตอนสำคัญที่สุด (ป้องกันข้อมูลหาย)</strong>:<ul>
+<li>ไปที่แท็บ <strong>Volumes</strong> กด <strong>+ New Volume</strong></li>
+<li>ตั้งชื่อ Volume ว่า <code>sqlite-db-volume</code></li>
+<li>ตั้งค่า <strong>Mount Path</strong> ให้เป็น <code>/app/data</code> (หรือ <code>/app/uploads</code> ถ้าต้องการเก็บรูป)</li>
+</ul>
+</li>
+<li>ปรับแก้ path ในโค้ดหรือตารางให้เชื่อมกับ Volume และกด Deploy ระบบจะให้โดเมน <code>https://xxx.up.railway.app</code> พร้อมใช้งานทันทีด้วย HTTPS!</li>
+</ol>
+<hr>
+<h2>🔐 4. เช็กลิสต์ความพร้อมก่อนใช้งานจริง (Production Readiness Checklists)</h2>
+<h3>4.1 ตั้งค่า Microsoft OAuth (Azure AD / Entra ID) ในระบบจริง</h3>
+<p>หากองค์กรต้องการใช้ปุ่ม <strong>&quot;Sign in with Microsoft&quot;</strong>:</p>
+<ol>
+<li>เข้าไปที่เว็บ <strong>Azure Portal (portal.azure.com)</strong> -&gt; ไปที่บริการ <strong>Microsoft Entra ID</strong></li>
+<li>เลือกเมนู <strong>App registrations</strong> -&gt; เลือกแอปที่ลงทะเบียนไว้ (หรือกด New registration)</li>
+<li>ในแท็บ <strong>Authentication (การรับรองตัวตน)</strong> -&gt; หัวข้อ <strong>Redirect URIs</strong>:<ul>
+<li>เพิ่ม URL โดเมนจริงของคุณ เช่น <code>https://projects.yourdomain.com</code> (ต้องมี <code>https://</code> เสมอใน Production)</li>
+</ul>
+</li>
+<li>คัดลอก <strong>Application (client) ID</strong> มาใส่ในไฟล์ <code>public/app.js</code> บรรทัดที่ 7:<pre><code class="language-javascript">const MS_CLIENT_ID = &#39;12345678-abcd-ef01-2345-67890abcdef0&#39;; // ใส่ Client ID จริงขององค์กร
+</code></pre>
+</li>
+</ol>
+<h3>4.2 ตั้งค่าการตั้งเวลาสำรองข้อมูลฐานข้อมูลอัตโนมัติ (Automated DB Backup Cron Job)</h3>
+<p>ป้องกันเหตุสุดวิสัย (Disk พัง, โดนแฮก, ลบผิด) ควรตั้งระบบสำรองไฟล์ <code>zoho_tracker.db</code> ทุกเที่ยงคืน:</p>
+<pre><code class="language-bash"># สร้างโฟลเดอร์สำหรับเก็บไฟล์ Backup
+sudo mkdir -p /var/backups/ag-projects
+sudo chmod 700 /var/backups/ag-projects
+
+# ตั้งเวลาทำงานอัตโนมัติด้วย Crontab
+sudo crontab -e
+</code></pre>
+<p>ใส่บรรทัดนี้ไว้ด้านล่างสุดของไฟล์ Crontab (สำรองข้อมูลทุกเที่ยงคืนและเก็บย้อนหลัง 30 วัน):</p>
+<pre><code class="language-bash">0 0 * * * cp /var/www/ag-projects/zoho_tracker.db /var/backups/ag-projects/zoho_tracker_$(date +\%Y\%m\%d).db &amp;&amp; find /var/backups/ag-projects/ -type f -name &quot;*.db&quot; -mtime +30 -delete
+</code></pre>
+<h3>4.3 ระบบพิมพ์คู่มือ PDF (PDF Generation Dependencies)</h3>
+<p>ในระบบเรามีสคริปต์ <code>generate_pdf.cjs</code> สำหรับสร้างคู่มือ PDF อัตโนมัติด้วย Edge/Chrome Headless หากต้องการรันคำสั่งนี้บน Linux Server ให้ติดตั้ง Chromium เพิ่มเติมด้วย:</p>
+<pre><code class="language-bash"># สำหรับ Ubuntu / Debian
+sudo apt install chromium-browser -y
+</code></pre>
+<hr>
+<h2>📞 สรุปภาพรวมคำแนะนำ</h2>
+<p>สำหรับองค์กรธุรกิจทั่วไป แนะนำให้เลือก <strong>วิธีที่ 1 (VPS Linux + PM2 + Nginx)</strong> หรือ <strong>วิธีที่ 2 (Docker Compose บน VPS)</strong> ครับ เพราะให้ประสิทธิภาพสูงสุด ควบคุมความปลอดภัยได้ 100% และไม่มีค่าใช้จ่ายแฝงเรื่อง Disk I/O ของ Cloud PaaS ครับ 🚀</p>
+
+  <div class="footer">Generated by Antigravity AI — Enterprise Project Tracking System Manual</div>
+</body>
+</html>

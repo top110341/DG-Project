@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Enterprise System Manual (English Edition)</title>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+@page {
+  size: A4;
+  margin: 20mm 15mm 20mm 15mm;
+}
+body {
+  font-family: 'Sarabun', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
+  line-height: 1.65;
+  font-size: 14px;
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  font-size: 26px;
+  color: #1d4ed8;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 8px;
+  margin-top: 0;
+}
+h2 {
+  font-size: 20px;
+  color: #0f172a;
+  margin-top: 28px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 6px;
+}
+h3 {
+  font-size: 16px;
+  color: #2563eb;
+  margin-top: 20px;
+}
+p, li {
+  color: #334155;
+}
+ul, ol {
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 6px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 10px 12px;
+  text-align: left;
+}
+th {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 600;
+}
+tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+blockquote {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  margin: 16px 0;
+  padding: 12px 16px;
+  color: #1e3a8a;
+  border-radius: 0 8px 8px 0;
+}
+code {
+  background: #f1f5f9;
+  color: #dc2626;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 24px 0;
+}
+.footer {
+  margin-top: 40px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+  <h1>🇬🇧 Enterprise Project Tracking System (Zoho Projects Clone)</h1>
+<p><strong>Enterprise User &amp; Administrator Manual (English Edition)</strong></p>
+<hr>
+<h2>🌟 Table of Contents</h2>
+<ol>
+<li><a href="#1-introduction--getting-started">Introduction &amp; Getting Started</a></li>
+<li><a href="#2-demo-credentials">Demo Credentials</a></li>
+<li><a href="#part-1-user-manual-for-team-members--managers">Part 1: User Manual (For Team Members &amp; Managers)</a><ul>
+<li><a href="#31-workspace--dashboard">3.1 Workspace &amp; Dashboard</a></li>
+<li><a href="#32-task-management">3.2 Task Management</a></li>
+<li><a href="#33-kanban-board-drag--drop">3.3 Kanban Board (Drag &amp; Drop)</a></li>
+<li><a href="#34-gantt-chart-timeline">3.4 Gantt Chart Timeline</a></li>
+<li><a href="#35-milestones--deliverables">3.5 Milestones &amp; Deliverables</a></li>
+<li><a href="#36-time-tracking--timesheets">3.6 Time Tracking &amp; Timesheets</a></li>
+<li><a href="#37-comments--file-attachments">3.7 Comments &amp; File Attachments</a></li>
+</ul>
+</li>
+<li><a href="#part-2-administrator--executive-manual">Part 2: Administrator &amp; Executive Manual</a><ul>
+<li><a href="#41-executive-dashboard--kpi-analytics">4.1 Executive Dashboard &amp; KPI Analytics</a></li>
+<li><a href="#42-team-hierarchy--role-management">4.2 Team Hierarchy &amp; Role Management</a></li>
+<li><a href="#43-password-reset--credentials-management">4.3 Password Reset &amp; Credentials Management</a></li>
+<li><a href="#44-invoicing--client-billing-system">4.4 Invoicing &amp; Client Billing System</a></li>
+<li><a href="#45-data-export-excel--csv">4.5 Data Export (Excel &amp; CSV)</a></li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2>1. Introduction &amp; Getting Started</h2>
+<p>This application is an enterprise-grade project tracking and collaboration platform inspired by <strong>Zoho Projects</strong>. It is designed to empower teams with multi-workspace management, real-time Kanban boards, dynamic Gantt charts, organizational reporting hierarchy, time tracking, and a real-world invoicing engine—all presented in a sleek, responsive Glassmorphic UI with full support for Dark and Light themes.</p>
+<h3>🚀 How to Launch the System:</h3>
+<ol>
+<li>Open Command Prompt or Terminal inside the project root directory.</li>
+<li>Start the local server by running: <code>npm start</code></li>
+<li>Open your web browser and navigate to: <code>http://localhost:3000</code></li>
+</ol>
+<hr>
+<h2>2. Demo Credentials</h2>
+<p>When launching the application, you can either click the quick-login demo buttons on the login screen or enter these credentials:</p>
+<table>
+<thead>
+<tr>
+<th align="left">Role / Access Level</th>
+<th align="left">Email Address</th>
+<th align="left">Password</th>
+<th align="left">Capabilities &amp; Scope</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>👑 Executive / Admin (CEO)</strong></td>
+<td align="left"><code>admin@demo.com</code></td>
+<td align="left"><code>admin123</code></td>
+<td align="left">Full access to all features including the Executive Dashboard, Team Hierarchy, Password Reset, Billing/Invoicing, and system configurations.</td>
+</tr>
+<tr>
+<td align="left"><strong>👔 Project Manager</strong></td>
+<td align="left"><code>manager@demo.com</code></td>
+<td align="left"><code>manager123</code></td>
+<td align="left">Can create project workspaces, assign tasks, establish phase milestones, and monitor team time entries.</td>
+</tr>
+<tr>
+<td align="left"><strong>👤 Team Member</strong></td>
+<td align="left"><code>member@demo.com</code></td>
+<td align="left"><code>member123</code></td>
+<td align="left">Can view assigned tasks, move Kanban cards across columns, log working hours, comment, and upload attachments.</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>[!TIP]
+<strong>Language &amp; Theme Toggles</strong>: </p>
+<ul>
+<li>Click the <strong>🇹🇭 TH / 🇬🇧 EN</strong> button in the top navigation bar to switch language interfaces seamlessly.</li>
+<li>Click the <strong>🌙 / ☀️</strong> icon to toggle between Dark Mode and Light Mode.</li>
+</ul>
+</blockquote>
+<hr>
+<h2>Part 1: User Manual (For Team Members &amp; Managers)</h2>
+<h3>3.1 Workspace &amp; Dashboard</h3>
+<p>Upon signing in, you will land on your <strong>Personal Dashboard</strong>, which serves as your central productivity hub:</p>
+<ul>
+<li><strong>Task Counters</strong>: Displays your total assigned tasks, completed items, and pending deliverables.</li>
+<li><strong>My Tasks</strong>: Lists immediate action items prioritized by upcoming due dates.</li>
+<li><strong>Project Progress</strong>: Visualizes completion percentage bars for all workspaces you belong to.</li>
+<li><strong>Switching Workspaces</strong>: Use the project selector dropdown in the top navbar or click the <strong>📁 Projects</strong> menu in the left sidebar to navigate into a specific project workspace.</li>
+</ul>
+<h3>3.2 Task Management</h3>
+<p>Inside a project workspace, navigate to the <strong>✅ Tasks</strong> tab to manage action items:</p>
+<ul>
+<li><strong>Creating Tasks</strong>: Click <strong><code>+ Create Task</code></strong>. In the modal, define the task title, priority level (<code>Low</code>, <code>Medium</code>, <code>High</code>), assign a team member, set a target due date, link it to a milestone phase, and optionally configure a recurring schedule (<code>Daily</code>, <code>Weekly</code>, <code>Monthly</code>).</li>
+<li><strong>Editing &amp; Discussing</strong>: Click any task title to open the <strong>Task Details Modal</strong> where you can modify properties, review status, and communicate with colleagues.</li>
+</ul>
+<h3>3.3 Kanban Board (Drag &amp; Drop)</h3>
+<p>Click the <strong>📋 Board</strong> tab to view tasks organized into three workflow columns: <code>To Do</code>, <code>In Progress</code>, and <code>Done</code>.</p>
+<ul>
+<li><strong>Drag &amp; Drop Workflow</strong>: Click and hold any task card, then drag and drop it into a different column to update its workflow status instantly. The system persists the change to the database and recalculates project progress metrics automatically.</li>
+</ul>
+<h3>3.4 Gantt Chart Timeline</h3>
+<p>Click the <strong>📊 Gantt</strong> tab to explore a visual schedule of project phases and deadlines:</p>
+<ul>
+<li><strong>Zoom Levels</strong>: In the top right corner of the chart, click the view toggles (<code>Day</code>, <code>Week</code>, or <code>Month</code>) to adjust the timeline zoom scale.</li>
+<li><strong>Task Details</strong>: Hover your mouse over any horizontal timeline bar to inspect the task name, assigned owner, duration, and completion status.</li>
+</ul>
+<h3>3.5 Milestones &amp; Deliverables</h3>
+<p>Click the <strong>🏁 Milestones</strong> tab to track major project deliverables and phase objectives:</p>
+<ul>
+<li><strong>Adding Milestones</strong>: Click <strong><code>+ Add Milestone</code></strong> to define a phase title and deadline date.</li>
+<li><strong>Completing Deliverables</strong>: Check the circular checkbox next to a milestone to mark it as <strong>Completed</strong>. The progress bar will turn green at 100%, displaying a trophy icon.</li>
+</ul>
+<h3>3.6 Time Tracking &amp; Timesheets</h3>
+<p>Click the <strong>⏱️ Timesheet</strong> tab to log working hours against specific project tasks for profitability tracking and client billing:</p>
+<ul>
+<li><strong>Logging Work</strong>: Select the relevant task from the dropdown, input the hours worked, choose the date, and enter descriptive work notes. Click <strong><code>Log Time</code></strong>.</li>
+<li><strong>Billing Status</strong>: Logged time entries remain marked as <strong>&quot;Unbilled&quot;</strong> until an Administrator or Project Manager incorporates them into a formal client invoice.</li>
+</ul>
+<h3>3.7 Comments &amp; File Attachments</h3>
+<p>Click any task title to open the Task Details Modal, which hosts the team&#39;s collaboration suite:</p>
+<ul>
+<li><strong>Discussion Stream (Comments)</strong>: Type messages and click Post to ask questions, report progress, or provide feedback directly beneath the task.</li>
+<li><strong>File Vault (Attachments)</strong>: Click <strong><code>📎 Attach File</code></strong> to upload architectural diagrams, specifications, PDF documents, or screenshots, storing them securely within the task context.</li>
+</ul>
+<hr>
+<h2>Part 2: Administrator &amp; Executive Manual</h2>
+<h3>4.1 Executive Dashboard &amp; KPI Analytics</h3>
+<p>Exclusive to Administrators and Executives (CEO), accessed via <strong>📊 Executive Dashboard</strong> in the left sidebar:</p>
+<ul>
+<li><strong>KPI Ribbon</strong>: Real-time summary metrics displaying Total Projects, On-Track Projects, Delayed Projects, and Total Budgeted Revenue across the entire organization.</li>
+<li><strong>Project Health Table</strong>: Evaluates the financial and operational health of every workspace, showing completion percentages, budget utilization, and automated risk flags (<code>Healthy</code>, <code>At Risk</code>, <code>Critical</code>).</li>
+<li><strong>Team Workload &amp; Performance</strong>: Monitors active tasks versus completed outputs per employee, enabling leadership to balance workloads and prevent staff burnout.</li>
+</ul>
+<h3>4.2 Team Hierarchy &amp; Role Management</h3>
+<p>Click <strong>👥 Team Management</strong> in the sidebar to administer user accounts and organizational reporting lines:</p>
+<ul>
+<li><strong>Adding Profiles</strong>: Click <strong><code>+ Add Team Member</code></strong>, enter their name, email, and assign an initial password.</li>
+<li><strong>Role Assignment</strong>: Assign one of three access tiers:<ul>
+<li><code>Admin</code>: Full executive access to financial controls, user permissions, and dashboards.</li>
+<li><code>Manager</code>: Department or project leader capable of creating projects, assigning tasks, and approving timesheets.</li>
+<li><code>Member</code>: Standard employee access restricted to assigned workspaces and tasks.</li>
+</ul>
+</li>
+<li><strong>Reporting Hierarchy (Reports To)</strong>: Select a direct supervisor in the &quot;Manager&quot; dropdown field. This establishes the organizational chain of command, allowing supervisors to delegate tasks and track departmental efficiency.</li>
+</ul>
+<h3>4.3 Password Reset &amp; Credentials Management</h3>
+<p>Administrators maintain full administrative control over user credentials to assist locked-out personnel and enforce security policies:</p>
+<ul>
+<li><strong>Method 1: 1-Click Quick Reset</strong>:<ol>
+<li>In the Team Management table, locate the target user and click <strong><code>🔑 Password</code></strong> in the actions column.</li>
+<li>Click the <strong><code>⚡ Quick Set: admin123</code></strong> button. The user&#39;s password is immediately restored to <code>admin123</code>.</li>
+<li>Alternatively, type any custom password (minimum 4 characters) in the input box and click Save.</li>
+</ol>
+</li>
+<li><strong>Method 2: Profile Update Modal</strong>:<ol>
+<li>Click <strong><code>✏️ Edit</code></strong> on any user row.</li>
+<li>Enter a new password into the &quot;New Password (leave blank to keep current)&quot; input field and click Save Member.</li>
+</ol>
+</li>
+</ul>
+<h3>4.4 Invoicing &amp; Client Billing System</h3>
+<p>An integrated billing engine that transforms project time into client revenue. Access via a project workspace by selecting the <strong>💰 Billing</strong> tab:</p>
+<ul>
+<li><strong>Automated Invoice Generation</strong>: Click <strong><code>+ Create Invoice</code></strong>. The system automatically pulls all <strong>Unbilled Timesheets</strong> associated with the project. Check the time entries you wish to bill; the system compiles line items and calculates totals using a standard hourly rate ($50/hr).</li>
+<li><strong>Discounts &amp; VAT Customization</strong>: Specify discount amounts ($) and tax/VAT percentage rates (e.g., 7%) before saving.</li>
+<li><strong>Lifecycle Management</strong>: Click the status button on any invoice card to cycle through payment states: <code>🟡 Unpaid</code> ➔ <code>🟢 Paid</code> ➔ <code>🔴 Overdue</code> ➔ <code>⚪ Cancelled</code>. Marking an invoice as &quot;Paid&quot; permanently locks all linked timesheet entries as billed.</li>
+<li><strong>PDF Print &amp; Delivery</strong>: Click an invoice card to open the <strong>Professional Invoice Preview Modal</strong>. This renders an official, branded financial document complete with status watermark badges. Click <strong><code>🖨️ Print / Save PDF</code></strong> to generate a client-ready document.</li>
+</ul>
+<h3>4.5 Data Export (Excel &amp; CSV)</h3>
+<p>To support external accounting software and offline data auditing:</p>
+<ul>
+<li><strong>Exporting Invoices</strong>: In the Billing tab, click <strong><code>📥 Export</code></strong> to download an <code>invoices_export.csv</code> file.</li>
+<li><strong>Exporting Tasks</strong>: In the Tasks tab, click <strong><code>📥 Export</code></strong> to download <code>tasks_export.csv</code>.</li>
+<li><strong>Seamless Excel Compatibility</strong>: Every exported CSV file is embedded with a <strong>UTF-8 Byte Order Mark (BOM)</strong> and double-quoted string formatting. When opened in Microsoft Excel or Google Sheets, international characters (including Thai text), client names, and financial figures render flawlessly with correct column alignment.</li>
+</ul>
+<hr>
+<p><em>Engineered by Antigravity AI — Advanced Enterprise Coding Assistant</em></p>
+
+  <div class="footer">Generated by Antigravity AI — Enterprise Project Tracking System Manual</div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "zoho-project-tracker",
+  "version": "1.0.0",
+  "description": "Zoho Projects Clone Web App with Backend Database and Advanced Features",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7",
+    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5"
+  }
+}

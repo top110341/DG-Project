@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+database.db
+database.db-journal
+uploads/*
+.git
+.gitignore
+.env
+.claude
+*.pdf
+test_*.js

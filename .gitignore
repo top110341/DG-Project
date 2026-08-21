@@ -1,0 +1,17 @@
+node_modules/
+npm-debug.log
+
+# Runtime data — regenerated automatically, should not be versioned
+database.db
+database.db-journal
+zoho_projects.db
+uploads/*
+!uploads/.gitkeep
+
+# Local tooling / unrelated app config
+.claude/
+.obsidian/
+
+# Environment secrets
+.env
+.env.local

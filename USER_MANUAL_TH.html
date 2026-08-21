@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>คู่มือการใช้งานระบบ (ฉบับภาษาไทย)</title>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+@page {
+  size: A4;
+  margin: 20mm 15mm 20mm 15mm;
+}
+body {
+  font-family: 'Sarabun', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
+  line-height: 1.65;
+  font-size: 14px;
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  font-size: 26px;
+  color: #1d4ed8;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 8px;
+  margin-top: 0;
+}
+h2 {
+  font-size: 20px;
+  color: #0f172a;
+  margin-top: 28px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 6px;
+}
+h3 {
+  font-size: 16px;
+  color: #2563eb;
+  margin-top: 20px;
+}
+p, li {
+  color: #334155;
+}
+ul, ol {
+  padding-left: 20px;
+}
+li {
+  margin-bottom: 6px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 10px 12px;
+  text-align: left;
+}
+th {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 600;
+}
+tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+blockquote {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  margin: 16px 0;
+  padding: 12px 16px;
+  color: #1e3a8a;
+  border-radius: 0 8px 8px 0;
+}
+code {
+  background: #f1f5f9;
+  color: #dc2626;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 24px 0;
+}
+.footer {
+  margin-top: 40px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+  <h1>🇹🇭 คู่มือการใช้งานระบบติดตามและบริหารจัดการโครงการ (Zoho Projects Clone)</h1>
+<p><strong>Enterprise User &amp; Administrator Manual (ฉบับภาษาไทย)</strong></p>
+<hr>
+<h2>🌟 สารบัญ (Table of Contents)</h2>
+<ol>
+<li><a href="#1-%E0%B8%9A%E0%B8%97%E0%B8%99%E0%B8%B3%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%80%E0%B8%A3%E0%B8%B4%E0%B9%88%E0%B8%A1%E0%B8%95%E0%B9%89%E0%B8%99%E0%B9%83%E0%B8%8A%E0%B9%89%E0%B8%87%E0%B8%B2%E0%B8%99">บทนำและการเริ่มต้นใช้งาน</a></li>
+<li><a href="#2-%E0%B8%9A%E0%B8%B1%E0%B8%8D%E0%B8%8A%E0%B8%B5%E0%B8%97%E0%B8%94%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B8%A3%E0%B8%B0%E0%B8%9A%E0%B8%9A-demo-credentials">บัญชีทดลองระบบ (Demo Credentials)</a></li>
+<li><a href="#%E0%B8%AA%E0%B9%88%E0%B8%A7%E0%B8%99%E0%B8%97%E0%B8%B5%E0%B9%88-1-%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%AA%E0%B8%B3%E0%B8%AB%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%9C%E0%B8%B9%E0%B9%89%E0%B9%83%E0%B8%8A%E0%B9%89%E0%B8%87%E0%B8%B2%E0%B8%99%E0%B8%97%E0%B8%B1%E0%B9%88%E0%B8%A7%E0%B9%84%E0%B8%9B-%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%AB%E0%B8%B1%E0%B8%A7%E0%B8%AB%E0%B8%99%E0%B9%89%E0%B8%B2%E0%B8%97%E0%B8%B5%E0%B8%A1-user--manager-manual">ส่วนที่ 1: คู่มือสำหรับผู้ใช้งานทั่วไป และหัวหน้าทีม (User &amp; Manager Manual)</a><ul>
+<li><a href="#31-%E0%B8%AB%E0%B8%99%E0%B9%89%E0%B8%B2%E0%B9%81%E0%B8%94%E0%B8%8A%E0%B8%9A%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%94%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%9E%E0%B8%B7%E0%B9%89%E0%B8%99%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%97%E0%B8%B3%E0%B8%87%E0%B8%B2%E0%B8%99-workspace--dashboard">3.1 หน้าแดชบอร์ดและพื้นที่ทำงาน (Workspace &amp; Dashboard)</a></li>
+<li><a href="#32-%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%88%E0%B8%B1%E0%B8%94%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%A3%E0%B8%B2%E0%B8%A2%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%87%E0%B8%B2%E0%B8%99-task-management">3.2 การจัดการรายการงาน (Task Management)</a></li>
+<li><a href="#33-%E0%B8%81%E0%B8%A3%E0%B8%B0%E0%B8%94%E0%B8%B2%E0%B8%99%E0%B8%84%E0%B8%B1%E0%B8%99%E0%B8%9A%E0%B8%B1%E0%B8%99-kanban-board-drag--drop">3.3 กระดานคันบัน (Kanban Board Drag &amp; Drop)</a></li>
+<li><a href="#34-%E0%B9%81%E0%B8%9C%E0%B8%99%E0%B8%A0%E0%B8%B9%E0%B8%A1%E0%B8%B4%E0%B9%84%E0%B8%97%E0%B8%A1%E0%B9%8C%E0%B9%84%E0%B8%A5%E0%B8%99%E0%B9%8C-gantt-chart-timeline">3.4 แผนภูมิไทม์ไลน์ (Gantt Chart Timeline)</a></li>
+<li><a href="#35-%E0%B9%80%E0%B8%9B%E0%B9%89%E0%B8%B2%E0%B8%AB%E0%B8%A1%E0%B8%B2%E0%B8%A2%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%88%E0%B8%B8%E0%B8%94%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B8%A1%E0%B8%AD%E0%B8%9A%E0%B8%87%E0%B8%B2%E0%B8%99-milestones">3.5 เป้าหมายและจุดส่งมอบงาน (Milestones)</a></li>
+<li><a href="#36-%E0%B8%A3%E0%B8%B0%E0%B8%9A%E0%B8%9A%E0%B8%9A%E0%B8%B1%E0%B8%99%E0%B8%97%E0%B8%B6%E0%B8%81%E0%B9%80%E0%B8%A7%E0%B8%A5%E0%B8%B2%E0%B8%97%E0%B8%B3%E0%B8%87%E0%B8%B2%E0%B8%99-timesheets">3.6 ระบบบันทึกเวลาทำงาน (Timesheets)</a></li>
+<li><a href="#37-%E0%B8%84%E0%B8%AD%E0%B8%A1%E0%B9%80%E0%B8%A1%E0%B8%99%E0%B8%95%E0%B9%8C%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B9%81%E0%B8%99%E0%B8%9A%E0%B9%84%E0%B8%9F%E0%B8%A5%E0%B9%8C%E0%B9%80%E0%B8%AD%E0%B8%81%E0%B8%AA%E0%B8%B2%E0%B8%A3-comments--attachments">3.7 คอมเมนต์และแนบไฟล์เอกสาร (Comments &amp; Attachments)</a></li>
+</ul>
+</li>
+<li><a href="#%E0%B8%AA%E0%B9%88%E0%B8%A7%E0%B8%99%E0%B8%97%E0%B8%B5%E0%B9%88-2-%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%AA%E0%B8%B3%E0%B8%AB%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%9C%E0%B8%B9%E0%B9%89%E0%B8%94%E0%B8%B9%E0%B9%81%E0%B8%A5%E0%B8%A3%E0%B8%B0%E0%B8%9A%E0%B8%9A%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%9C%E0%B8%B9%E0%B9%89%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%AB%E0%B8%B2%E0%B8%A3-administrator--executive-manual">ส่วนที่ 2: คู่มือสำหรับผู้ดูแลระบบและผู้บริหาร (Administrator &amp; Executive Manual)</a><ul>
+<li><a href="#41-%E0%B9%81%E0%B8%94%E0%B8%8A%E0%B8%9A%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B8%94%E0%B8%AA%E0%B8%A3%E0%B8%B8%E0%B8%9B%E0%B8%A0%E0%B8%B2%E0%B8%9E%E0%B8%A3%E0%B8%A7%E0%B8%A1%E0%B8%A3%E0%B8%B0%E0%B8%94%E0%B8%B1%E0%B8%9A%E0%B8%9C%E0%B8%B9%E0%B9%89%E0%B8%9A%E0%B8%A3%E0%B8%B4%E0%B8%AB%E0%B8%B2%E0%B8%A3-executive-dashboard">4.1 แดชบอร์ดสรุปภาพรวมระดับผู้บริหาร (Executive Dashboard)</a></li>
+<li><a href="#42-%E0%B8%88%E0%B8%B1%E0%B8%94%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%B4%E0%B8%97%E0%B8%98%E0%B8%B4%E0%B9%8C%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B9%82%E0%B8%84%E0%B8%A3%E0%B8%87%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87%E0%B8%AD%E0%B8%87%E0%B8%84%E0%B9%8C%E0%B8%81%E0%B8%A3-team--hierarchy-management">4.2 จัดการสิทธิ์และโครงสร้างองค์กร (Team &amp; Hierarchy Management)</a></li>
+<li><a href="#43-%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%A3%E0%B8%B5%E0%B9%80%E0%B8%8B%E0%B9%87%E0%B8%95%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%84%E0%B9%88%E0%B8%B2%E0%B8%A3%E0%B8%AB%E0%B8%B1%E0%B8%AA%E0%B8%9C%E0%B9%88%E0%B8%B2%E0%B8%99%E0%B8%9E%E0%B8%99%E0%B8%B1%E0%B8%81%E0%B8%87%E0%B8%B2%E0%B8%99-password-management">4.3 การรีเซ็ตและตั้งค่ารหัสผ่านพนักงาน (Password Management)</a></li>
+<li><a href="#44-%E0%B8%A3%E0%B8%B0%E0%B8%9A%E0%B8%9A%E0%B9%83%E0%B8%9A%E0%B9%81%E0%B8%88%E0%B9%89%E0%B8%87%E0%B8%AB%E0%B8%99%E0%B8%B5%E0%B9%89%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B9%80%E0%B8%9A%E0%B8%B4%E0%B8%81%E0%B8%88%E0%B9%88%E0%B8%B2%E0%B8%A2-invoicing--billing-system">4.4 ระบบใบแจ้งหนี้และการเบิกจ่าย (Invoicing &amp; Billing System)</a></li>
+<li><a href="#45-%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B8%AD%E0%B8%AD%E0%B8%81%E0%B8%82%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%B9%E0%B8%A5%E0%B8%A3%E0%B8%B2%E0%B8%A2%E0%B8%87%E0%B8%B2%E0%B8%99-data-export-excelcsv">4.5 การส่งออกข้อมูลรายงาน (Data Export Excel/CSV)</a></li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2>1. บทนำและการเริ่มต้นใช้งาน</h2>
+<p>แอปพลิเคชันนี้คือระบบบริหารจัดการโครงการและติดตามงานระดับ Enterprise ที่ได้รับแรงบันดาลใจจาก <strong>Zoho Projects</strong> ถูกพัฒนาขึ้นเพื่อยกระดับการทำงานร่วมกันในองค์กร รองรับการทำงานแบบ Multi-workspace พร้อมเครื่องมือการติดตามงานที่ครบครัน เช่น กระดานคันบัน (Kanban), แผนภูมิไทม์ไลน์ (Gantt Chart), ระบบบันทึกชั่วโมงการทำงาน, ระบบใบแจ้งหนี้จริง และการจัดโครงสร้างบังคับบัญชาในองค์กร ภายใต้ดีไซน์ Glassmorphism ที่ทันสมัย รองรับทั้งโหมดมืด (Dark Mode) และโหมดสว่าง (Light Mode)</p>
+<h3>🚀 วิธีการเปิดใช้งานระบบ:</h3>
+<ol>
+<li>เปิด Command Prompt หรือ Terminal ในโฟลเดอร์โปรเจกต์</li>
+<li>พิมพ์คำสั่งรันเซิร์ฟเวอร์: <code>npm start</code></li>
+<li>เปิดเว็บเบราว์เซอร์ไปที่: <code>http://localhost:3000</code></li>
+</ol>
+<hr>
+<h2>2. บัญชีทดลองระบบ (Demo Credentials)</h2>
+<p>เมื่อเข้าสู่หน้าระบบ คุณสามารถคลิกปุ่มเข้าสู่ระบบด่วนที่หน้าจอ หรือกรอกข้อมูลบัญชีทดสอบที่จัดเตรียมไว้ให้ดังนี้:</p>
+<table>
+<thead>
+<tr>
+<th align="left">ระดับสิทธิ์การใช้งาน</th>
+<th align="left">อีเมล (Email)</th>
+<th align="left">รหัสผ่าน (Password)</th>
+<th align="left">ความสามารถและสิทธิ์การเข้าถึง</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>👑 ผู้บริหาร / แอดมิน (CEO / Admin)</strong></td>
+<td align="left"><code>admin@demo.com</code></td>
+<td align="left"><code>admin123</code></td>
+<td align="left">เข้าถึงได้ทุกฟังก์ชัน รวมถึงแดชบอร์ดผู้บริหาร จัดการโครงสร้างทีม รีเซ็ตรหัสผ่าน และระบบใบแจ้งหนี้</td>
+</tr>
+<tr>
+<td align="left"><strong>👔 หัวหน้าโครงการ (Project Manager)</strong></td>
+<td align="left"><code>manager@demo.com</code></td>
+<td align="left"><code>manager123</code></td>
+<td align="left">สามารถสร้างโปรเจกต์ มอบหมายงานให้ทีมงาน ตั้งค่า Milestones และตรวจสอบเวลาทำงานได้</td>
+</tr>
+<tr>
+<td align="left"><strong>👤 พนักงาน / ทีมงาน (Team Member)</strong></td>
+<td align="left"><code>member@demo.com</code></td>
+<td align="left"><code>member123</code></td>
+<td align="left">สามารถดูงานที่ได้รับมอบหมาย ลากการ์ดเปลี่ยนสถานะ บันทึกชั่วโมงทำงาน คอมเมนต์ และอัปโหลดไฟล์ได้</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>[!TIP]
+<strong>การเปลี่ยนภาษาและสลับธีมหน้าจอ</strong>: </p>
+<ul>
+<li>คลิกปุ่ม <strong>🇹🇭 TH / 🇬🇧 EN</strong> ที่แถบเมนูด้านบนขวาเพื่อเปลี่ยนระหว่างภาษาไทยและภาษาอังกฤษ</li>
+<li>คลิกไอคอน <strong>🌙 / ☀️</strong> เพื่อสลับระหว่างโหมดมืด (Dark Mode) และโหมดสว่าง (Light Mode)</li>
+</ul>
+</blockquote>
+<hr>
+<h2>ส่วนที่ 1: คู่มือสำหรับผู้ใช้งานทั่วไป และหัวหน้าทีม (User &amp; Manager Manual)</h2>
+<h3>3.1 หน้าแดชบอร์ดและพื้นที่ทำงาน (Workspace &amp; Dashboard)</h3>
+<p>เมื่อเข้าสู่ระบบสำเร็จ คุณจะพบกับหน้า <strong>แดชบอร์ดส่วนตัว (Personal Dashboard)</strong> ซึ่งเป็นศูนย์รวมข้อมูลสำคัญของตัวคุณเอง:</p>
+<ul>
+<li><strong>ตัวเลขสถิติงาน (Task Counters)</strong>: แสดงจำนวนงานทั้งหมด งานที่เสร็จแล้ว และงานที่กำลังดำเนินการ</li>
+<li><strong>รายการงานด่วน (My Tasks)</strong>: แสดงรายการงานที่ได้รับมอบหมาย พร้อมระบุวันครบกำหนดส่ง</li>
+<li><strong>ความคืบหน้าโครงการ (Project Progress)</strong>: แสดงเปอร์เซ็นต์ความคืบหน้าของแต่ละโปรเจกต์ที่คุณมีส่วนร่วม</li>
+<li><strong>การเลือกโปรเจกต์</strong>: คุณสามารถเปลี่ยนเข้าสู่พื้นที่ทำงานของโครงการที่ต้องการได้จากเมนู Dropdown ที่แถบบาร์ด้านบน หรือคลิกที่เมนู <strong>📁 โปรเจกต์ (Projects)</strong> ที่แถบเมนูด้านซ้าย</li>
+</ul>
+<h3>3.2 การจัดการรายการงาน (Task Management)</h3>
+<p>เมื่อเข้าไปที่โครงการใดโครงการหนึ่ง ให้คลิกที่แท็บ <strong>✅ รายการงาน (Tasks)</strong> เพื่อจัดการรายการดำเนินงาน:</p>
+<ul>
+<li><strong>สร้างงานใหม่</strong>: คลิกปุ่ม <strong><code>+ สร้างงาน (Create Task)</code></strong> ระบบจะเปิดหน้าต่างขึ้นมา ให้กำหนดชื่อรายการงาน, ระดับความสำคัญ (<code>Low</code> ต่ำ, <code>Medium</code> ปานกลาง, <code>High</code> สูง), เลือกผู้รับผิดชอบงาน (Assignee), เลือกวันส่งมอบ (Due Date), ผูกกับเป้าหมาย Milestone และยังสามารถตั้งค่าเป็นงานประจำที่ทำซ้ำอัตโนมัติ (<code>Daily</code> รายวัน, <code>Weekly</code> รายสัปดาห์, <code>Monthly</code> รายเดือน) ได้อีกด้วย</li>
+<li><strong>ดูรายละเอียดและแก้ไข</strong>: คลิกที่ชื่อ Task ใดก็ได้เพื่อเปิดหน้าต่าง <strong>Task Details Modal</strong> สำหรับแก้ไขข้อมูล สั่งงาน หรือพูดคุยสนทนา</li>
+</ul>
+<h3>3.3 กระดานคันบัน (Kanban Board Drag &amp; Drop)</h3>
+<p>คลิกที่แท็บ <strong>📋 บอร์ด (Board)</strong> เพื่อดูงานในรูปแบบกระดานคันบัน ที่แบ่งออกเป็น 3 คอลัมน์สถานะ: <code>ต้องทำ (To Do)</code>, <code>กำลังทำ (In Progress)</code> และ <code>เสร็จสิ้น (Done)</code></p>
+<ul>
+<li><strong>วิธีลากวาง (Drag &amp; Drop)</strong>: ใช้เมาส์คลิกค้างที่การ์ดงานแล้วลากข้ามคอลัมน์เพื่อเปลี่ยนสถานะงานได้ทันที ระบบจะอัปเดตสถานะลงในฐานข้อมูลและคำนวณสถิติความคืบหน้าของโครงการโดยอัตโนมัติ</li>
+</ul>
+<h3>3.4 แผนภูมิไทม์ไลน์ (Gantt Chart Timeline)</h3>
+<p>คลิกแท็บ <strong>📊 แกนต์ (Gantt)</strong> เพื่อตรวจสอบช่วงเวลาดำเนินงานและแผนผังไทม์ไลน์โครงการแบบวิชวล:</p>
+<ul>
+<li><strong>ปรับเปลี่ยนมุมมอง</strong>: ที่มุมขวาบนของตาราง สามารถคลิกเลือกมุมมองรายวัน (<code>Day</code>), รายสัปดาห์ (<code>Week</code>) หรือรายเดือน (<code>Month</code>) เพื่อย่อขยายระยะเวลาของโครงการ</li>
+<li><strong>ดูรายละเอียด</strong>: นำเมาส์ไปชี้ (Hover) ที่แถบสีไทม์ไลน์ เพื่อดูชื่อรายการงาน ผู้รับผิดชอบ และระยะเวลาเริ่มต้น-สิ้นสุด</li>
+</ul>
+<h3>3.5 เป้าหมายและจุดส่งมอบงาน (Milestones)</h3>
+<p>คลิกแท็บ <strong>🏁 จุดส่งมอบ (Milestones)</strong> เพื่อติดตามเป้าหมายใหญ่หรือเฟสงานสำคัญของโครงการ:</p>
+<ul>
+<li><strong>เพิ่มเป้าหมายใหม่</strong>: คลิกปุ่ม <strong><code>+ เพิ่ม Milestone</code></strong> กำหนดชื่อเป้าหมายและวันที่เป้าหมายต้องสำเร็จ</li>
+<li><strong>ทำเครื่องหมายเสร็จสิ้น</strong>: คลิกช่องวงกลมด้านหน้าชื่อ Milestone เพื่อทำเครื่องหมายว่าสำเร็จ แถบความคืบหน้าจะเปลี่ยนเป็นสีเขียว 100% และแสดงไอคอนถ้วยรางวัลทันที</li>
+</ul>
+<h3>3.6 ระบบบันทึกเวลาทำงาน (Timesheets)</h3>
+<p>คลิกแท็บ <strong>⏱️ บันทึกเวลา (Timesheet)</strong> เพื่อจดบันทึกชั่วโมงการทำงานจริงในแต่ละงาน ใช้สำหรับติดตามความคุ้มค่าและนำไปคำนวณเบิกจ่ายกับลูกค้า:</p>
+<ul>
+<li><strong>วิธีบันทึก</strong>: เลือกรายการงานที่ทำ (Task), กรอกจำนวนชั่วโมงที่ใช้, เลือกวันที่ และพิมพ์รายละเอียดการทำงาน จากนั้นกดปุ่ม <strong><code>บันทึกเวลา (Log Time)</code></strong></li>
+<li><strong>สถานะการเบิกเงิน</strong>: รายการที่บันทึกจะขึ้นสถานะว่า <strong>&quot;รอเบิก (Unbilled)&quot;</strong> จนกว่าแอดมินหรือผู้จัดการจะนำรายการเวลานี้ไปสร้างเป็นใบแจ้งหนี้เพื่อเรียกเก็บเงินลูกค้า</li>
+</ul>
+<h3>3.7 คอมเมนต์และแนบไฟล์เอกสาร (Comments &amp; Attachments)</h3>
+<p>คลิกที่ชื่อ Task เพื่อเปิดหน้าต่างรายละเอียดงาน จะพบกับศูนย์รวมการสื่อสารของทีม:</p>
+<ul>
+<li><strong>แสดงความคิดเห็น (Comments)</strong>: พิมพ์ข้อความและกดปุ่ม Post เพื่อสนทนา รายงานปัญหา หรือให้คำแนะนำทีมงานใต้ Task นั้น ๆ</li>
+<li><strong>แนบไฟล์เอกสาร (File Attachments)</strong>: คลิกปุ่ม <strong><code>📎 แนบไฟล์ (Attach File)</code></strong> เพื่ออัปโหลดรูปภาพ สเปคงาน เอกสาร PDF หรือไฟล์ที่เกี่ยวข้อง เก็บไว้เป็นคลังข้อมูลประจำ Task</li>
+</ul>
+<hr>
+<h2>ส่วนที่ 2: คู่มือสำหรับผู้ดูแลระบบและผู้บริหาร (Administrator &amp; Executive Manual)</h2>
+<h3>4.1 แดชบอร์ดสรุปภาพรวมระดับผู้บริหาร (Executive Dashboard)</h3>
+<p>เมนูพิเศษสำหรับผู้บริหาร (CEO) และแอดมิน เข้าถึงได้ผ่านเมนู <strong>📊 แดชบอร์ดผู้บริหาร (Executive Dashboard)</strong> ที่แถบเมนูด้านซ้าย:</p>
+<ul>
+<li><strong>สถิติหลัก (KPI Ribbon)</strong>: แถบตัวเลขสรุปสถิติทันที (Real-time): จำนวนโครงการทั้งหมด, จำนวนโครงการที่ตรงเวลา, จำนวนโครงการที่ล่าช้า และยอดงบประมาณรวมทั้งบริษัท</li>
+<li><strong>ตารางสุขภาพโครงการ (Project Health Table)</strong>: วิเคราะห์สุขภาพของโปรเจกต์ แสดงเปอร์เซ็นต์ความคืบหน้า อัตราการใช้งบประมาณ (Budget Utilized) พร้อมติดป้ายแจ้งเตือนความเสี่ยงให้อัตโนมัติ: <code>ปกติ (Healthy)</code>, <code>มีความเสี่ยง (At Risk)</code> หรือ <code>วิกฤต (Critical)</code></li>
+<li><strong>ตารางประสิทธิภาพและการกระจายงานในทีม (Team Workload &amp; Performance)</strong>: ตรวจสอบภาระงานของพนักงานแต่ละคน แสดงจำนวนงานที่กำลังทำ (Active Tasks) และงานที่ทำสำเร็จแล้ว (Completed Tasks) เพื่อช่วยผู้บริหารกระจายงานไม่ให้พนักงานคนใดคนหนึ่งรับภาระหนักเกินไป</li>
+</ul>
+<h3>4.2 จัดการสิทธิ์และโครงสร้างองค์กร (Team &amp; Hierarchy Management)</h3>
+<p>คลิกเมนู <strong>👥 จัดการทีมและสิทธิ์ (Team Management)</strong> ที่แถบด้านซ้าย เพื่อบริหารจัดการพนักงานและสร้างแผนผังองค์กร:</p>
+<ul>
+<li><strong>เพิ่มทีมงานใหม่</strong>: คลิกปุ่ม <strong><code>+ เพิ่มทีมงาน</code></strong> กรอกชื่อ อีเมล และตั้งรหัสผ่านเริ่มต้น</li>
+<li><strong>กำหนดระดับสิทธิ์ (Role)</strong>: เลือกระหว่าง:<ul>
+<li><code>Admin</code>: ผู้ดูแลระบบสูงสุด สามารถเข้าถึงแดชบอร์ดผู้บริหาร ตั้งค่าการเงิน และจัดการสิทธิ์พนักงานได้</li>
+<li><code>Manager</code>: หัวหน้าทีม/ผู้จัดการโครงการ สามารถสร้างโครงการ สั่งงาน และจัดการตารางเวลาได้</li>
+<li><code>Member</code>: พนักงานทั่วไป สามารถเข้าถึงเฉพาะโครงการที่ตนเองมีส่วนร่วม</li>
+</ul>
+</li>
+<li><strong>สายบังคับบัญชา (Reports To / Manager ID)</strong>: สามารถระบุชื่อหัวหน้างานสายตรงในช่อง &quot;หัวหน้างาน&quot; เพื่อสร้างโครงสร้างองค์กร (Hierarchy) ให้หัวหน้างานสามารถตรวจสอบประสิทธิภาพของลูกทีมในสังกัดได้</li>
+</ul>
+<h3>4.3 การรีเซ็ตและตั้งค่ารหัสผ่านพนักงาน (Password Management)</h3>
+<p>แอดมินมีอำนาจเต็มในการช่วยเหลือพนักงานที่ลืมรหัสผ่าน หรือต้องการปรับเปลี่ยนรหัสผ่านเพื่อความปลอดภัย สามารถทำได้ 2 วิธี:</p>
+<ul>
+<li><strong>วิธีที่ 1: รีเซ็ตด่วนในคลิกเดียว (1-Click Quick Reset)</strong>:<ol>
+<li>ที่ตารางรายชื่อทีมงาน ในคอลัมน์จัดการด้านขวาสุด คลิกปุ่ม <strong><code>🔑 รหัสผ่าน (Reset Pass)</code></strong></li>
+<li>ในหน้าต่างป๊อปอัป ให้คลิกปุ่ม <strong><code>⚡ ตั้งค่าด่วนเป็น: admin123</code></strong> ระบบจะคืนค่ารหัสผ่านของพนักงานคนนั้นให้เป็น <code>admin123</code> ทันที</li>
+<li>หรือสามารถพิมพ์รหัสผ่านใหม่ที่ต้องการ (ความยาวขั้นต่ำ 4 ตัวอักษร) ลงในช่อง แล้วกดบันทึก</li>
+</ol>
+</li>
+<li><strong>วิธีที่ 2: เปลี่ยนรหัสผ่านพร้อมแก้ไขตำแหน่งงาน</strong>:<ol>
+<li>คลิกปุ่ม <strong><code>✏️ Edit</code></strong> ที่รายชื่อพนักงาน</li>
+<li>ในหน้าต่างแก้ไขโปรไฟล์ ให้พิมพ์รหัสผ่านใหม่ลงในช่อง &quot;รหัสผ่านใหม่ (เว้นว่างไว้หากไม่เปลี่ยน)&quot; แล้วกดบันทึก</li>
+</ol>
+</li>
+</ul>
+<h3>4.4 ระบบใบแจ้งหนี้และการเบิกจ่าย (Invoicing &amp; Billing System)</h3>
+<p>ระบบคิดเงินและสร้างใบแจ้งหนี้จริง เข้าใช้งานโดยเข้าไปที่โปรเจกต์ และเลือกแท็บ <strong>💰 ใบแจ้งหนี้ (Billing)</strong>:</p>
+<ul>
+<li><strong>การสร้างใบแจ้งหนี้อัตโนมัติ</strong>: คลิกปุ่ม <strong><code>+ สร้างใบแจ้งหนี้ (Create Invoice)</code></strong> ระบบจะดึงข้อมูล <strong>&quot;รายการชั่วโมงทำงานที่ยังไม่เบิกจ่าย (Unbilled Timesheets)&quot;</strong> ของทีมงานทั้งหมดในโครงการมาแสดงอัตโนมัติ ให้แอดมินติ๊กเลือกรายการที่ต้องการเรียกเก็บเงิน ระบบจะนำไปสร้างเป็นรายการบิล (Line Items) พร้อมคำนวณเงินให้อัตโนมัติ (เรทมาตรฐาน $50/ชั่วโมง)</li>
+<li><strong>การปรับแต่งส่วนลดและภาษี</strong>: ในหน้าต่างสร้างใบแจ้งหนี้ สามารถระบุยอดส่วนลด (Discount) และอัตราภาษีมูลค่าเพิ่ม (VAT % เช่น 7%) ก่อนกดบันทึก</li>
+<li><strong>การเปลี่ยนสถานะใบแจ้งหนี้</strong>: คลิกที่ไอคอนสถานะบนการ์ดใบแจ้งหนี้ เพื่อสลับสถานะ: <code>🟡 รอชำระ (Unpaid)</code> ➔ <code>🟢 ชำระแล้ว (Paid)</code> ➔ <code>🔴 เกินกำหนด (Overdue)</code> ➔ <code>⚪ ยกเลิก (Cancelled)</code> เมื่อเปลี่ยนเป็น &quot;ชำระแล้ว&quot; ชั่วโมงทำงานในระบบจะถูกล็อคเป็น &quot;เบิกจ่ายแล้ว&quot; ทันที</li>
+<li><strong>พิมพ์เอกสารและเซฟ PDF</strong>: คลิกที่เอกสารใบแจ้งหนี้เพื่อเปิดหน้าต่างตัวอย่าง (Invoice Preview Modal) ระบบจะแสดงรูปแบบเอกสารทางการสวยงาม พร้อมตราประทับลายน้ำสถานะ ให้คลิกปุ่ม <strong><code>🖨️ พิมพ์ / เซฟ PDF</code></strong> เพื่อบันทึกเป็นไฟล์ส่งให้บริษัทลูกค้าได้ทันที</li>
+</ul>
+<h3>4.5 การส่งออกข้อมูลรายงาน (Data Export Excel/CSV)</h3>
+<p>เพื่อรองรับการทำงานร่วมกับฝ่ายบัญชีหรือนำข้อมูลไปวิเคราะห์ต่อในระบบภายนอก:</p>
+<ul>
+<li><strong>ส่งออกใบแจ้งหนี้</strong>: ที่แท็บใบแจ้งหนี้ คลิกปุ่ม <strong><code>📥 Export</code> / <code>📥 ส่งออก Excel/CSV</code></strong> ระบบจะดาวน์โหลดไฟล์ <code>invoices_export.csv</code></li>
+<li><strong>ส่งออกรายการงาน</strong>: ที่แท็บรายการงาน คลิกปุ่ม <strong><code>📥 Export</code></strong> เพื่อดาวน์โหลดไฟล์ <code>tasks_export.csv</code></li>
+<li><strong>รองรับภาษาไทยใน Microsoft Excel 100%</strong>: ทุกไฟล์ CSV ที่ส่งออกจากระบบได้ถูกฝังรหัส <strong>UTF-8 BOM (<code>\uFEFF</code>)</strong> พร้อมครอบข้อความด้วยเครื่องหมายอัญประกาศ ทำให้เมื่อเปิดไฟล์ด้วยโปรแกรม Microsoft Excel หรือ Google Sheets ข้อความภาษาไทย ชื่อบริษัทลูกค้า และยอดเงิน จะแสดงผลได้อย่างสวยงามถูกต้อง ไม่เป็นภาษาต่างดาว และจัดเรียงตรงคอลัมน์ทันทีโดยไม่ต้องตั้งค่าใด ๆ เพิ่มเติม</li>
+</ul>
+<hr>
+<p><em>จัดทำและพัฒนาโดย Antigravity AI — Advanced Enterprise Coding Assistant</em></p>
+
+  <div class="footer">Generated by Antigravity AI — Enterprise Project Tracking System Manual</div>
+</body>
+</html>
