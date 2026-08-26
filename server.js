@@ -41,11 +41,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors(process.env.ALLOWED_ORIGIN ? { origin: process.env.ALLOWED_ORIGIN } : {}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-// Serverless platforms (Vercel) serve /public as static assets natively; app.listen()
-// is skipped there too (see bottom of file), so this only runs for local/Docker use.
-if (process.env.VERCEL !== '1') {
-  app.use(express.static(path.join(__dirname, 'public')));
-}
+// Vercel's "Express" framework preset routes *all* traffic (static included) through
+// this one function rather than serving /public separately — so unlike app.listen()
+// below, this must run in every environment, Vercel included.
+app.use(express.static(path.join(__dirname, 'public')));
 
 // File attachments upload directly from the browser to Vercel Blob (bypassing this
 // server entirely) using a short-lived client token — Vercel Functions hard-cap
