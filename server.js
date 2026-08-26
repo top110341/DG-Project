@@ -724,6 +724,21 @@ app.delete('/api/users/:id', async (req, res) => {
 });
 
 // ── Workspaces ──
+// TEMP diagnostic route — measures raw Turso round-trip time and reports the DB
+// host/region to debug slow dashboard loads. Remove after diagnosis.
+app.get('/api/diag/perf', async (req, res) => {
+  try {
+    const t0 = Date.now();
+    await dbGet('SELECT 1 AS ok');
+    const dbQueryMs = Date.now() - t0;
+    let tursoHost = null;
+    try { tursoHost = new URL(process.env.TURSO_DATABASE_URL).hostname; } catch (e) {}
+    res.json({ dbQueryMs, tursoHost, vercelRegion: process.env.VERCEL_REGION || null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/workspaces', async (req, res) => {
   try {
     const workspaces = await dbAll('SELECT * FROM workspaces ORDER BY created_at');
