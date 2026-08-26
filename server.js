@@ -1114,10 +1114,15 @@ app.put('/api/notifications/read', async (req, res) => {
 // ── Milestones ──
 app.get('/api/milestones', async (req, res) => {
   try {
-    const { project_id } = req.query;
+    const { project_id, workspace_id } = req.query;
     let milestones;
     if (project_id) {
       milestones = await dbAll('SELECT * FROM milestones WHERE project_id = ?', [project_id]);
+    } else if (workspace_id) {
+      milestones = await dbAll(
+        `SELECT m.* FROM milestones m JOIN projects p ON m.project_id = p.id WHERE p.workspace_id = ?`,
+        [workspace_id]
+      );
     } else {
       milestones = await dbAll('SELECT * FROM milestones');
     }
@@ -1177,10 +1182,15 @@ app.put('/api/milestones/:id/status', async (req, res) => {
 // ── Timesheets ──
 app.get('/api/timesheets', async (req, res) => {
   try {
-    const { project_id } = req.query;
+    const { project_id, workspace_id } = req.query;
     let timesheets;
     if (project_id) {
       timesheets = await dbAll('SELECT * FROM timesheets WHERE project_id = ?', [project_id]);
+    } else if (workspace_id) {
+      timesheets = await dbAll(
+        `SELECT t.* FROM timesheets t JOIN projects p ON t.project_id = p.id WHERE p.workspace_id = ?`,
+        [workspace_id]
+      );
     } else {
       timesheets = await dbAll('SELECT * FROM timesheets');
     }

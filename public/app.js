@@ -1018,25 +1018,15 @@ async function loadAllTasks() {
 
 async function loadAllTimesheets() {
     try {
-        const projects = await fetch(API(`/api/projects?workspace_id=${currentWorkspaceId}`)).then(r => r.json());
-        const all = [];
-        for (const p of projects) {
-            const ts = await fetch(API(`/api/timesheets?project_id=${p.id}`)).then(r => r.json());
-            all.push(...ts);
-        }
-        return all;
+        const timesheets = await fetch(API(`/api/timesheets?workspace_id=${currentWorkspaceId}`)).then(r => r.json());
+        return timesheets || [];
     } catch (e) { return []; }
 }
 
 async function loadAllMilestones() {
     try {
-        const projects = await fetch(API(`/api/projects?workspace_id=${currentWorkspaceId}`)).then(r => r.json());
-        const all = [];
-        for (const p of projects) {
-            const ms = await fetch(API(`/api/milestones?project_id=${p.id}`)).then(r => r.json());
-            all.push(...ms);
-        }
-        return all;
+        const milestones = await fetch(API(`/api/milestones?workspace_id=${currentWorkspaceId}`)).then(r => r.json());
+        return milestones || [];
     } catch (e) { return []; }
 }
 
