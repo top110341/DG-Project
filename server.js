@@ -1095,7 +1095,21 @@ app.post('/api/uploads/token', async (req, res) => {
         }
         return {
           addRandomSuffix: true,
-          maximumSizeInBytes: 20 * 1024 * 1024 // 20MB per file
+          maximumSizeInBytes: 20 * 1024 * 1024, // 20MB per file
+          allowedContentTypes: [
+            'image/*',
+            'application/pdf',
+            'text/*',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/zip',
+            'application/x-zip-compressed',
+            'application/json'
+          ]
         };
       }
     });
