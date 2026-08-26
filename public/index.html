@@ -645,6 +645,14 @@
         <p id="confirm-modal-message" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.5;">Are you sure?</p>
     </div><div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="resolveConfirmDialog(false)" id="confirm-modal-cancel">Cancel</button><button type="button" class="btn btn-danger" onclick="resolveConfirmDialog(true)" id="confirm-modal-ok">Confirm</button></div></div></div>
 
+    <!-- Exposes the real Vercel Blob client uploader as a global for app.js (a classic
+         script, kept that way so its onclick="..." handlers keep working) to call.
+         Hand-rolling this upload flow isn't safe — it covers retries, multipart, and
+         the exact Blob storage protocol, so it's loaded from the official package. -->
+    <script type="module">
+        import { upload } from 'https://esm.sh/@vercel/blob@2.8.0/client';
+        window.__blobUpload = upload;
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

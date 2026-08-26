@@ -10,12 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATA_DIR=/app/data
+      - TURSO_DATABASE_URL=${TURSO_DATABASE_URL}
+      - TURSO_AUTH_TOKEN=${TURSO_AUTH_TOKEN}
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
       # - ALLOWED_ORIGIN=https://your-domain.example
-    volumes:
-      # Single persistent volume holds both the SQLite DB and uploaded files
-      # (app writes database.db and uploads/ under DATA_DIR — see server.js)
-      - app_data:/app/data
-
-volumes:
-  app_data:

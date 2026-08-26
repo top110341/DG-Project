@@ -1,8 +1,7 @@
 import express from 'express';
-import sqlite3 from 'sqlite3';
-import multer from 'multer';
+import { createClient } from '@libsql/client';
+import { handleUpload } from '@vercel/blob/client';
 import path from 'path';
-import fs from 'fs';
 import cors from 'cors';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
@@ -37,91 +36,65 @@ function tooLong(value, max) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// All persistent state (SQLite file + uploaded files) lives under DATA_DIR so a single
-// volume mount (e.g. Fly.io/Docker) covers both. Defaults to the app folder for local dev.
-const DATA_DIR = process.env.DATA_DIR || __dirname;
-const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
-const DB_PATH = path.join(DATA_DIR, 'database.db');
-
 // Middleware
 // ALLOWED_ORIGIN restricts CORS in production; unset (local dev) stays permissive.
 app.use(cors(process.env.ALLOWED_ORIGIN ? { origin: process.env.ALLOWED_ORIGIN } : {}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(UPLOADS_DIR));
-
-// Ensure data/uploads directories exist
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+// Serverless platforms (Vercel) serve /public as static assets natively; app.listen()
+// is skipped there too (see bottom of file), so this only runs for local/Docker use.
+if (process.env.VERCEL !== '1') {
+  app.use(express.static(path.join(__dirname, 'public')));
 }
 
-// Multer config
+// File attachments upload directly from the browser to Vercel Blob (bypassing this
+// server entirely) using a short-lived client token — Vercel Functions hard-cap
+// request bodies at 4.5MB, well under this app's 20MB attachment limit, so files
+// can never be routed through Express/multer here.
 const BLOCKED_UPLOAD_EXTENSIONS = new Set([
   '.exe', '.msi', '.bat', '.cmd', '.com', '.scr', '.ps1', '.vbs', '.js',
   '.jar', '.dll', '.sh', '.app', '.apk'
 ]);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (req, file, cb) => {
-    // Strip any directory components and unsafe characters to prevent path traversal
-    const baseName = path.basename(file.originalname).replace(/[^a-zA-Z0-9._-]/g, '_');
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + baseName);
+// Turso (libSQL) database — SQLite-compatible, works over the network on serverless
+// platforms. TURSO_DATABASE_URL defaults to a local SQLite file for local dev/Docker.
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL || `file:${path.join(__dirname, 'database.db')}`,
+  authToken: process.env.TURSO_AUTH_TOKEN
+});
+
+// On a persistent server this would finish long before real traffic arrives, but on
+// serverless (Vercel) a request can hit a cold start the instant it begins — so every
+// request must wait for schema init to finish before touching the database.
+const dbReady = initializeDatabaseSchema().catch((err) => {
+  console.error('Failed to initialize database:', err.message);
+  throw err;
+});
+
+app.use(async (req, res, next) => {
+  try {
+    await dbReady;
+    next();
+  } catch (err) {
+    res.status(503).json({ error: 'Database is not ready, please retry' });
   }
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB per file
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (BLOCKED_UPLOAD_EXTENSIONS.has(ext)) {
-      return cb(new Error(`File type "${ext}" is not allowed`));
-    }
-    cb(null, true);
-  }
-});
-
-// SQLite initialization
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error('Failed to connect to database:', err.message);
-  } else {
-    console.log('Connected to SQLite database.');
-    initializeDatabaseSchema();
-  }
-});
-
-// Promisified db helpers
-function dbRun(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve(this);
-    });
-  });
+// dbRun/dbAll/dbGet keep the same signature the rest of this file already uses,
+// so no route handler below needed to change when swapping sqlite3 -> libSQL.
+async function dbRun(sql, params = []) {
+  const result = await client.execute({ sql, args: params });
+  return { lastID: result.lastInsertRowid, changes: result.rowsAffected };
 }
 
-function dbAll(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
-  });
+async function dbAll(sql, params = []) {
+  const result = await client.execute({ sql, args: params });
+  return result.rows;
 }
 
-function dbGet(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
+async function dbGet(sql, params = []) {
+  const result = await client.execute({ sql, args: params });
+  return result.rows[0];
 }
 
 async function migratePlaintextPasswords() {
@@ -143,161 +116,149 @@ async function migratePlaintextPasswords() {
 // ──────────────────────────────────────────────
 // Database Schema
 // ──────────────────────────────────────────────
-function initializeDatabaseSchema() {
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      email TEXT UNIQUE,
-      password TEXT,
-      avatar_color TEXT,
-      auth_provider TEXT DEFAULT 'local'
-    )`);
+async function initializeDatabaseSchema() {
+  await dbRun(`CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    email TEXT UNIQUE,
+    password TEXT,
+    avatar_color TEXT,
+    auth_provider TEXT DEFAULT 'local'
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS sessions (
-      token TEXT PRIMARY KEY,
-      user_id TEXT,
-      created_at TEXT,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    user_id TEXT,
+    created_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS workspaces (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      created_at TEXT,
-      hourly_rate REAL DEFAULT 50
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS workspaces (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    created_at TEXT,
+    hourly_rate REAL DEFAULT 50
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS projects (
-      id TEXT PRIMARY KEY,
-      workspace_id TEXT,
-      name TEXT,
-      desc TEXT,
-      created_at TEXT,
-      FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT,
+    name TEXT,
+    desc TEXT,
+    created_at TEXT,
+    FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS tasks (
-      id TEXT PRIMARY KEY,
-      project_id TEXT,
-      name TEXT,
-      priority TEXT,
-      due TEXT,
-      status TEXT,
-      milestone_id TEXT,
-      recurring_pattern TEXT,
-      FOREIGN KEY (project_id) REFERENCES projects(id)
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS tasks (
+    id TEXT PRIMARY KEY,
+    project_id TEXT,
+    name TEXT,
+    priority TEXT,
+    due TEXT,
+    status TEXT,
+    milestone_id TEXT,
+    recurring_pattern TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS comments (
-      id TEXT PRIMARY KEY,
-      task_id TEXT,
-      user_name TEXT,
-      content TEXT,
-      created_at TEXT,
-      FOREIGN KEY (task_id) REFERENCES tasks(id)
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS comments (
+    id TEXT PRIMARY KEY,
+    task_id TEXT,
+    user_name TEXT,
+    content TEXT,
+    created_at TEXT,
+    FOREIGN KEY (task_id) REFERENCES tasks(id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS attachments (
-      id TEXT PRIMARY KEY,
-      task_id TEXT,
-      filename TEXT,
-      filepath TEXT,
-      uploaded_at TEXT,
-      FOREIGN KEY (task_id) REFERENCES tasks(id)
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS attachments (
+    id TEXT PRIMARY KEY,
+    task_id TEXT,
+    filename TEXT,
+    filepath TEXT,
+    uploaded_at TEXT,
+    FOREIGN KEY (task_id) REFERENCES tasks(id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS notifications (
-      id TEXT PRIMARY KEY,
-      message TEXT,
-      is_read INTEGER DEFAULT 0,
-      created_at TEXT
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    message TEXT,
+    is_read INTEGER DEFAULT 0,
+    created_at TEXT
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS milestones (
-      id TEXT PRIMARY KEY,
-      project_id TEXT,
-      name TEXT,
-      date TEXT,
-      completed INTEGER DEFAULT 0,
-      FOREIGN KEY (project_id) REFERENCES projects(id)
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS milestones (
+    id TEXT PRIMARY KEY,
+    project_id TEXT,
+    name TEXT,
+    date TEXT,
+    completed INTEGER DEFAULT 0,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS timesheets (
-      id TEXT PRIMARY KEY,
-      project_id TEXT,
-      task_id TEXT,
-      hours REAL,
-      date TEXT,
-      notes TEXT,
-      user TEXT,
-      billed INTEGER DEFAULT 0,
-      invoice_id TEXT,
-      FOREIGN KEY (project_id) REFERENCES projects(id),
-      FOREIGN KEY (task_id) REFERENCES tasks(id)
-    )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS timesheets (
+    id TEXT PRIMARY KEY,
+    project_id TEXT,
+    task_id TEXT,
+    hours REAL,
+    date TEXT,
+    notes TEXT,
+    user TEXT,
+    billed INTEGER DEFAULT 0,
+    invoice_id TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (task_id) REFERENCES tasks(id)
+  )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS invoices (
-      id TEXT PRIMARY KEY,
-      project_id TEXT,
-      invoice_number TEXT,
-      client TEXT,
-      client_address TEXT,
-      date TEXT,
-      due_date TEXT,
-      status TEXT DEFAULT 'unpaid',
-      amount REAL,
-      tax_rate REAL DEFAULT 7,
-      tax_amount REAL DEFAULT 0,
-      discount REAL DEFAULT 0,
-      total_amount REAL,
-      hours REAL,
-      items TEXT,
-      notes TEXT,
-      paid_date TEXT,
-      FOREIGN KEY (project_id) REFERENCES projects(id)
-    )`, () => {
-      // Safe migrations for existing databases
-      const cols = [
-        "ADD COLUMN client_address TEXT DEFAULT ''",
-        "ADD COLUMN due_date TEXT DEFAULT ''",
-        "ADD COLUMN status TEXT DEFAULT 'unpaid'",
-        "ADD COLUMN tax_rate REAL DEFAULT 7",
-        "ADD COLUMN tax_amount REAL DEFAULT 0",
-        "ADD COLUMN discount REAL DEFAULT 0",
-        "ADD COLUMN total_amount REAL DEFAULT 0",
-        "ADD COLUMN items TEXT DEFAULT '[]'",
-        "ADD COLUMN paid_date TEXT DEFAULT ''"
-      ];
-      const userCols = [
-        "ADD COLUMN role TEXT DEFAULT 'member'",
-        "ADD COLUMN manager_id TEXT DEFAULT ''",
-        "ADD COLUMN department TEXT DEFAULT 'Engineering'",
-        "ADD COLUMN title TEXT DEFAULT 'Team Member'",
-        "ADD COLUMN avatar_url TEXT DEFAULT ''"
-      ];
-      userCols.forEach(col => {
-        db.run(`ALTER TABLE users ${col}`, (err) => {});
-      });
+  await dbRun(`CREATE TABLE IF NOT EXISTS invoices (
+    id TEXT PRIMARY KEY,
+    project_id TEXT,
+    invoice_number TEXT,
+    client TEXT,
+    client_address TEXT,
+    date TEXT,
+    due_date TEXT,
+    status TEXT DEFAULT 'unpaid',
+    amount REAL,
+    tax_rate REAL DEFAULT 7,
+    tax_amount REAL DEFAULT 0,
+    discount REAL DEFAULT 0,
+    total_amount REAL,
+    hours REAL,
+    items TEXT,
+    notes TEXT,
+    paid_date TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id)
+  )`);
 
-      const taskCols = [
-        "ADD COLUMN assignee_id TEXT DEFAULT ''",
-        "ADD COLUMN assignee_name TEXT DEFAULT 'Unassigned'",
-        "ADD COLUMN assignee_avatar TEXT DEFAULT '#8b949e'",
-        "ADD COLUMN start_date TEXT DEFAULT ''"
-      ];
-      taskCols.forEach(col => {
-        db.run(`ALTER TABLE tasks ${col}`, (err) => {});
-      });
+  // Safe migrations for existing databases (columns added after initial release) —
+  // ALTER TABLE errors (column already exists) are expected on every run after the
+  // first and are swallowed.
+  const userCols = [
+    "ADD COLUMN role TEXT DEFAULT 'member'",
+    "ADD COLUMN manager_id TEXT DEFAULT ''",
+    "ADD COLUMN department TEXT DEFAULT 'Engineering'",
+    "ADD COLUMN title TEXT DEFAULT 'Team Member'",
+    "ADD COLUMN avatar_url TEXT DEFAULT ''"
+  ];
+  for (const col of userCols) {
+    await dbRun(`ALTER TABLE users ${col}`).catch(() => {});
+  }
 
-      db.run("ALTER TABLE workspaces ADD COLUMN hourly_rate REAL DEFAULT 50", (err) => {});
+  const taskCols = [
+    "ADD COLUMN assignee_id TEXT DEFAULT ''",
+    "ADD COLUMN assignee_name TEXT DEFAULT 'Unassigned'",
+    "ADD COLUMN assignee_avatar TEXT DEFAULT '#8b949e'",
+    "ADD COLUMN start_date TEXT DEFAULT ''"
+  ];
+  for (const col of taskCols) {
+    await dbRun(`ALTER TABLE tasks ${col}`).catch(() => {});
+  }
 
-      (async () => {
-        await migratePlaintextPasswords();
-        await seedData();
-      })();
-    });
-  });
+  await dbRun("ALTER TABLE workspaces ADD COLUMN hourly_rate REAL DEFAULT 50").catch(() => {});
+
+  console.log('Connected to database.');
+  await migratePlaintextPasswords();
+  await seedData();
 }
 
 // ──────────────────────────────────────────────
@@ -1120,28 +1081,49 @@ app.get('/api/tasks/:id/attachments', async (req, res) => {
   }
 });
 
-app.post('/api/tasks/:id/attachments', (req, res, next) => {
-  upload.single('file')(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ error: err.message || 'Upload failed' });
-    }
-    next();
-  });
-}, async (req, res) => {
+// Issues a short-lived, scoped token so the browser can upload the file bytes directly
+// to Vercel Blob, bypassing this server (Vercel Functions cap request bodies at 4.5MB,
+// well under this app's 20MB attachment limit, so files can never be routed through here).
+app.post('/api/uploads/token', async (req, res) => {
+  try {
+    const jsonResponse = await handleUpload({
+      body: req.body,
+      request: req,
+      onBeforeGenerateToken: async (pathname) => {
+        const ext = path.extname(pathname).toLowerCase();
+        if (BLOCKED_UPLOAD_EXTENSIONS.has(ext)) {
+          throw new Error(`File type "${ext}" is not allowed`);
+        }
+        return {
+          addRandomSuffix: true,
+          maximumSizeInBytes: 20 * 1024 * 1024 // 20MB per file
+        };
+      }
+    });
+    res.json(jsonResponse);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Records an attachment already uploaded straight to Vercel Blob via the token above.
+app.post('/api/tasks/:id/attachments', async (req, res) => {
   try {
     const { id } = req.params;
-    const file = req.file;
-    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+    const { filename, filepath } = req.body;
+    if (!filename || !filepath) {
+      return res.status(400).json({ error: 'filename and filepath are required' });
+    }
 
     const attachmentId = 'a_' + Date.now() + Math.round(Math.random() * 1e4);
     const uploaded_at = new Date().toISOString();
 
     await dbRun(
       'INSERT INTO attachments (id, task_id, filename, filepath, uploaded_at) VALUES (?, ?, ?, ?, ?)',
-      [attachmentId, id, file.originalname, '/uploads/' + file.filename, uploaded_at]
+      [attachmentId, id, filename, filepath, uploaded_at]
     );
-    await createNotification(`File attached: ${file.originalname}`);
-    res.json({ id: attachmentId, task_id: id, filename: file.originalname, filepath: '/uploads/' + file.filename, uploaded_at });
+    await createNotification(`File attached: ${filename}`);
+    res.json({ id: attachmentId, task_id: id, filename, filepath, uploaded_at });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1462,7 +1444,7 @@ app.delete('/api/invoices/:id', async (req, res) => {
   try {
     const { id } = req.params;
     // Release linked timesheets
-    await dbRun('UPDATE timesheets SET billed = 0, invoice_id = "" WHERE invoice_id = ?', [id]);
+    await dbRun("UPDATE timesheets SET billed = 0, invoice_id = '' WHERE invoice_id = ?", [id]);
     await dbRun('DELETE FROM invoices WHERE id = ?', [id]);
     res.json({ success: true });
   } catch (err) {
@@ -1548,6 +1530,12 @@ app.get('/api/tasks/export', exportTasksHandler);
 // ──────────────────────────────────────────────
 // Start Server
 // ──────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+// On Vercel the platform itself invokes the exported app per-request (no listener);
+// everywhere else (local dev, Docker/Northflank) it needs to listen on a real port.
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+export default app;

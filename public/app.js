@@ -2249,7 +2249,9 @@ async function openTaskDetail(taskId) {
         const attEl = $('#td-attachments-list');
         const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'];
         attEl.innerHTML = attachments.map(a => {
-            const cleanPath = a.filepath.startsWith('/') ? a.filepath : '/' + a.filepath;
+            // filepath is a full Vercel Blob URL for new uploads; older attachments
+            // (pre-migration) may still have a relative /uploads/... path.
+            const cleanPath = /^https?:\/\//i.test(a.filepath) ? a.filepath : (a.filepath.startsWith('/') ? a.filepath : '/' + a.filepath);
             const ext = (a.filename || '').split('.').pop().toLowerCase();
             const isImg = imageExtensions.includes(ext);
             if (isImg) {
@@ -2790,17 +2792,32 @@ $('#td-upload-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fileInput = $('#td-file-input');
     if (!fileInput.files.length || !currentTaskDetailId) return;
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    const file = fileInput.files[0];
     try {
-        await fetch(API(`/api/tasks/${currentTaskDetailId}/attachments`), {
-            method: 'POST',
-            body: formData
+        // Uploads straight from the browser to Vercel Blob (never passes through our
+        // server), then a small follow-up call just records the attachment in the DB.
+        const sessionToken = localStorage.getItem('ag_session_token');
+        const blob = await window.__blobUpload(file.name, file, {
+            access: 'public',
+            handleUploadUrl: API('/api/uploads/token'),
+            headers: sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}
         });
+
+        const res = await fetch(API(`/api/tasks/${currentTaskDetailId}/attachments`), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: file.name, filepath: blob.url })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            showToast(err.error || 'Upload failed');
+            return;
+        }
+
         fileInput.value = '';
         openTaskDetail(currentTaskDetailId);
         showToast(currentLang === 'th' ? 'อัปโหลดไฟล์เรียบร้อย' : 'File uploaded successfully');
-    } catch (e) { showToast('Upload failed'); }
+    } catch (e) { showToast(e.message || 'Upload failed'); }
 });
 
 async function exportTasksToCSV() {
