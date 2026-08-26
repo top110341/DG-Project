@@ -1080,6 +1080,20 @@ app.get('/api/tasks/:id/attachments', async (req, res) => {
   }
 });
 
+// TEMPORARY diagnostic route — remove after debugging the "Token mismatch" issue.
+app.get('/api/uploads/diag2', async (req, res) => {
+  const rw = process.env.BLOB_READ_WRITE_TOKEN || '';
+  const codePoints = [...rw.slice(-6)].map(c => c.charCodeAt(0));
+  res.json({
+    rawLength: rw.length,
+    trimmedLength: rw.trim().length,
+    hasLeadingWhitespace: rw !== rw.trimStart(),
+    hasTrailingWhitespace: rw !== rw.trimEnd(),
+    last6CharCodes: codePoints, // reveals hidden \n (10), \r (13), spaces (32) etc. without leaking the secret
+    startsWithExpectedPrefix: rw.startsWith('vercel_blob_rw_')
+  });
+});
+
 // Issues a short-lived, scoped token so the browser can upload the file bytes directly
 // to Vercel Blob, bypassing this server (Vercel Functions cap request bodies at 4.5MB,
 // well under this app's 20MB attachment limit, so files can never be routed through here).
