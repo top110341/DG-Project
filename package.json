@@ -10,7 +10,6 @@
   "dependencies": {
     "express": "^4.19.2",
     "@libsql/client": "^0.17.4",
-    "@vercel/blob": "^2.8.0",
     "cors": "^2.8.5"
   }
 }

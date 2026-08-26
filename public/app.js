@@ -2245,51 +2245,6 @@ async function openTaskDetail(taskId) {
         `).join('') || emptyState('💬', t('no_comments'));
         commentsEl.scrollTop = commentsEl.scrollHeight;
 
-        const attachments = await fetch(API(`/api/tasks/${taskId}/attachments`)).then(r => r.json());
-        const attEl = $('#td-attachments-list');
-        const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico'];
-        attEl.innerHTML = attachments.map(a => {
-            // filepath is a full Vercel Blob URL for new uploads; older attachments
-            // (pre-migration) may still have a relative /uploads/... path.
-            const cleanPath = /^https?:\/\//i.test(a.filepath) ? a.filepath : (a.filepath.startsWith('/') ? a.filepath : '/' + a.filepath);
-            const ext = (a.filename || '').split('.').pop().toLowerCase();
-            const isImg = imageExtensions.includes(ext);
-            if (isImg) {
-                return `
-                    <div class="attachment-card">
-                        <div class="attachment-header">
-                            <span class="attachment-name">🖼️ ${esc(a.filename)}</span>
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <span style="font-size:0.75rem;color:var(--text-muted);">${formatDate(a.uploaded_at)}</span>
-                                <a href="${esc(cleanPath)}" download="${esc(a.filename)}" target="_blank" class="btn btn-secondary" style="padding:4px 10px;font-size:0.75rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-                                    ⬇️ <span>${currentLang === 'th' ? 'ดาวน์โหลด' : 'Download'}</span>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="attachment-image-box">
-                            <a href="${esc(cleanPath)}" target="_blank" title="Click to open full size">
-                                <img src="${esc(cleanPath)}" alt="${esc(a.filename)}">
-                            </a>
-                        </div>
-                    </div>
-                `;
-            } else {
-                return `
-                    <div class="attachment-card">
-                        <div class="attachment-header">
-                            <span class="attachment-name">📎 ${esc(a.filename)}</span>
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <span style="font-size:0.75rem;color:var(--text-muted);">${formatDate(a.uploaded_at)}</span>
-                                <a href="${esc(cleanPath)}" download="${esc(a.filename)}" target="_blank" class="btn btn-secondary" style="padding:4px 12px;font-size:0.78rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-                                    ⬇️ <span>${currentLang === 'th' ? 'ดาวน์โหลด' : 'Download'}</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }).join('') || emptyState('📎', t('no_files'));
-
         openModal('task-detail-modal');
     } catch (e) { showToast('Failed to load task details'); }
 }
@@ -2786,44 +2741,6 @@ $('#td-comment-form').addEventListener('submit', async (e) => {
         openTaskDetail(currentTaskDetailId);
         showToast(currentLang === 'th' ? 'โพสต์ความคิดเห็นแล้ว' : 'Comment posted');
     } catch (e) { showToast('Failed to post comment'); }
-});
-
-$('#td-upload-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fileInput = $('#td-file-input');
-    if (!fileInput.files.length || !currentTaskDetailId) return;
-    const file = fileInput.files[0];
-    try {
-        // Vercel Blob signs the client token against the exact pathname requested; special
-        // characters (spaces, parentheses, #, etc.) in that pathname are a known cause of
-        // "Access denied" on upload (the signed path and the actual request path diverge).
-        // Sanitize the storage pathname but keep the original name for display/download.
-        const safePathname = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-        // Uploads straight from the browser to Vercel Blob (never passes through our
-        // server), then a small follow-up call just records the attachment in the DB.
-        const sessionToken = localStorage.getItem('ag_session_token');
-        const blob = await window.__blobUpload(safePathname, file, {
-            access: 'public',
-            handleUploadUrl: API('/api/uploads/token'),
-            headers: sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}
-        });
-
-        const res = await fetch(API(`/api/tasks/${currentTaskDetailId}/attachments`), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: file.name, filepath: blob.url })
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            showToast(err.error || 'Upload failed');
-            return;
-        }
-
-        fileInput.value = '';
-        openTaskDetail(currentTaskDetailId);
-        showToast(currentLang === 'th' ? 'อัปโหลดไฟล์เรียบร้อย' : 'File uploaded successfully');
-    } catch (e) { showToast(e.message || 'Upload failed'); }
 });
 
 async function exportTasksToCSV() {

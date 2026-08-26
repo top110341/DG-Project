@@ -1,6 +1,5 @@
 import express from 'express';
 import { createClient } from '@libsql/client';
-import { handleUpload } from '@vercel/blob/client';
 import path from 'path';
 import cors from 'cors';
 import crypto from 'crypto';
@@ -45,15 +44,6 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // this one function rather than serving /public separately — so unlike app.listen()
 // below, this must run in every environment, Vercel included.
 app.use(express.static(path.join(__dirname, 'public')));
-
-// File attachments upload directly from the browser to Vercel Blob (bypassing this
-// server entirely) using a short-lived client token — Vercel Functions hard-cap
-// request bodies at 4.5MB, well under this app's 20MB attachment limit, so files
-// can never be routed through Express/multer here.
-const BLOCKED_UPLOAD_EXTENSIONS = new Set([
-  '.exe', '.msi', '.bat', '.cmd', '.com', '.scr', '.ps1', '.vbs', '.js',
-  '.jar', '.dll', '.sh', '.app', '.apk'
-]);
 
 // Turso (libSQL) database — SQLite-compatible, works over the network on serverless
 // platforms. TURSO_DATABASE_URL defaults to a local SQLite file for local dev/Docker.
@@ -1064,79 +1054,6 @@ app.post('/api/tasks/:id/comments', async (req, res) => {
     );
     await createNotification(`New comment by ${user_name}`);
     res.json({ id: commentId, task_id: id, user_name, content, created_at });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── Attachments ──
-app.get('/api/tasks/:id/attachments', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const attachments = await dbAll('SELECT * FROM attachments WHERE task_id = ?', [id]);
-    res.json(attachments);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Issues a short-lived, scoped token so the browser can upload the file bytes directly
-// to Vercel Blob, bypassing this server (Vercel Functions cap request bodies at 4.5MB,
-// well under this app's 20MB attachment limit, so files can never be routed through here).
-app.post('/api/uploads/token', async (req, res) => {
-  try {
-    const jsonResponse = await handleUpload({
-      body: req.body,
-      request: req,
-      onBeforeGenerateToken: async (pathname) => {
-        const ext = path.extname(pathname).toLowerCase();
-        if (BLOCKED_UPLOAD_EXTENSIONS.has(ext)) {
-          throw new Error(`File type "${ext}" is not allowed`);
-        }
-        return {
-          addRandomSuffix: true,
-          maximumSizeInBytes: 20 * 1024 * 1024, // 20MB per file
-          allowedContentTypes: [
-            'image/*',
-            'application/pdf',
-            'text/*',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-            'application/zip',
-            'application/x-zip-compressed',
-            'application/json'
-          ]
-        };
-      }
-    });
-    res.json(jsonResponse);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// Records an attachment already uploaded straight to Vercel Blob via the token above.
-app.post('/api/tasks/:id/attachments', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { filename, filepath } = req.body;
-    if (!filename || !filepath) {
-      return res.status(400).json({ error: 'filename and filepath are required' });
-    }
-
-    const attachmentId = 'a_' + Date.now() + Math.round(Math.random() * 1e4);
-    const uploaded_at = new Date().toISOString();
-
-    await dbRun(
-      'INSERT INTO attachments (id, task_id, filename, filepath, uploaded_at) VALUES (?, ?, ?, ?, ?)',
-      [attachmentId, id, filename, filepath, uploaded_at]
-    );
-    await createNotification(`File attached: ${filename}`);
-    res.json({ id: attachmentId, task_id: id, filename, filepath, uploaded_at });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
