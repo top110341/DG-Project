@@ -3,6 +3,7 @@ import { createClient } from '@libsql/client';
 import path from 'path';
 import cors from 'cors';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 
 // ES module __dirname
@@ -34,6 +35,11 @@ function tooLong(value, max) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Vercel sits in front of this app as a proxy, so req.ip is the proxy's address
+// unless we trust its X-Forwarded-For header — needed for rate limiting to key
+// off the real client IP instead of locking out every user at once.
+app.set('trust proxy', 1);
 
 // Middleware
 // ALLOWED_ORIGIN restricts CORS in production; unset (local dev) stays permissive.
@@ -387,6 +393,8 @@ async function handleTaskRecurrence(task) {
 // ──────────────────────────────────────────────
 // Middleware: Token-based User Authentication
 // ──────────────────────────────────────────────
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 async function authenticateUser(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -396,6 +404,10 @@ async function authenticateUser(req, res, next) {
     const token = authHeader.substring(7);
     const session = await dbGet('SELECT * FROM sessions WHERE token = ?', [token]);
     if (!session) {
+      return res.status(401).json({ error: 'Unauthorized: Session expired or invalid' });
+    }
+    if (Date.now() - new Date(session.created_at).getTime() > SESSION_TTL_MS) {
+      await dbRun('DELETE FROM sessions WHERE token = ?', [token]);
       return res.status(401).json({ error: 'Unauthorized: Session expired or invalid' });
     }
     const user = await dbGet('SELECT * FROM users WHERE id = ?', [session.user_id]);
@@ -408,6 +420,15 @@ async function authenticateUser(req, res, next) {
     res.status(500).json({ error: e.message });
   }
 }
+
+// Throttles login attempts per client IP to slow down password brute-forcing.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts. Please try again later.' }
+});
 
 app.use((req, res, next) => {
   if (req.path === '/api/login' || req.path === '/api/login/microsoft') {
@@ -424,7 +445,7 @@ app.use((req, res, next) => {
 // ──────────────────────────────────────────────
 
 // ── Auth ──
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -457,7 +478,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-app.post('/api/login/microsoft', async (req, res) => {
+app.post('/api/login/microsoft', loginLimiter, async (req, res) => {
   try {
     const { name, email } = req.body;
     if (!email || !name) {
