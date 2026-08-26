@@ -516,8 +516,11 @@ app.post('/api/logout', async (req, res) => {
 // ── Profile ──
 app.post('/api/profile/update', async (req, res) => {
   try {
-    const { name, color, avatar_url, email } = req.body;
-    await dbRun('UPDATE users SET name = ?, avatar_color = ?, avatar_url = ? WHERE email = ?', [name, color, avatar_url || '', email]);
+    const { name, color, avatar_url } = req.body;
+    if (tooLong(name, 100)) {
+      return res.status(400).json({ error: 'Name is too long' });
+    }
+    await dbRun('UPDATE users SET name = ?, avatar_color = ?, avatar_url = ? WHERE id = ?', [name, color, avatar_url || '', req.user.id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
