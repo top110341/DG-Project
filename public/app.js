@@ -2794,10 +2794,16 @@ $('#td-upload-form').addEventListener('submit', async (e) => {
     if (!fileInput.files.length || !currentTaskDetailId) return;
     const file = fileInput.files[0];
     try {
+        // Vercel Blob signs the client token against the exact pathname requested; special
+        // characters (spaces, parentheses, #, etc.) in that pathname are a known cause of
+        // "Access denied" on upload (the signed path and the actual request path diverge).
+        // Sanitize the storage pathname but keep the original name for display/download.
+        const safePathname = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
         // Uploads straight from the browser to Vercel Blob (never passes through our
         // server), then a small follow-up call just records the attachment in the DB.
         const sessionToken = localStorage.getItem('ag_session_token');
-        const blob = await window.__blobUpload(file.name, file, {
+        const blob = await window.__blobUpload(safePathname, file, {
             access: 'public',
             handleUploadUrl: API('/api/uploads/token'),
             headers: sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}

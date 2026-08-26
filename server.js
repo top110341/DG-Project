@@ -1105,19 +1105,6 @@ app.post('/api/uploads/token', async (req, res) => {
   }
 });
 
-// TEMPORARY diagnostic route — remove after debugging the "access denied" issue.
-app.get('/api/uploads/diag', async (req, res) => {
-  const rw = process.env.BLOB_READ_WRITE_TOKEN || '';
-  const rwParts = rw.split('_');
-  res.json({
-    rwTokenPresent: !!rw,
-    rwTokenPrefix: rwParts.slice(0, 3).join('_'), // e.g. "vercel_blob_rw" — no secret revealed
-    storeIdFromRwToken: rwParts[3] || null,
-    blobStoreIdEnv: process.env.BLOB_STORE_ID || null,
-    match: (rwParts[3] || null) === (process.env.BLOB_STORE_ID || null)
-  });
-});
-
 // Records an attachment already uploaded straight to Vercel Blob via the token above.
 app.post('/api/tasks/:id/attachments', async (req, res) => {
   try {
