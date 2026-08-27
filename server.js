@@ -321,7 +321,7 @@ async function seedData() {
       await dbRun(`INSERT INTO invoices (id, project_id, invoice_number, client, client_address, date, due_date, status, amount, tax_rate, tax_amount, discount, total_amount, hours, items, notes, paid_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, ['inv1', 'p1', 'INV-2026-001', 'Acme Corp Thailand Co., Ltd.', '123 Sukhumvit Rd, Klongtoey, Bangkok 10110', '2026-07-05', '2026-07-20', 'paid', 700, 7, 49, 0, 749, 12, sampleItems, 'Payment received via Bank Transfer', '2026-07-10']);
 
       // Notifications
-      await dbRun(`INSERT INTO notifications (id, message, is_read, created_at) VALUES (?, ?, ?, ?)`, ['n1', 'Welcome to AG Projects Enterprise!', 0, new Date().toISOString()]);
+      await dbRun(`INSERT INTO notifications (id, message, is_read, created_at) VALUES (?, ?, ?, ?)`, ['n1', 'Welcome to DG Projects Enterprise!', 0, new Date().toISOString()]);
       await dbRun(`INSERT INTO notifications (id, message, is_read, created_at) VALUES (?, ?, ?, ?)`, ['n2', 'Team hierarchy and executive dashboard ready', 0, new Date().toISOString()]);
     } else {
       await dbRun(`UPDATE tasks SET assignee_id = 'u3', assignee_name = 'Nong Dev', assignee_avatar = '#3fb950' WHERE id IN ('t1', 't2', 't3', 't5') AND (assignee_id = '' OR assignee_id IS NULL)`);

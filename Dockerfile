@@ -1,5 +1,5 @@
 # =====================================================================
-# AG Projects Enterprise — Production Dockerfile
+# DG Projects Enterprise — Production Dockerfile
 # =====================================================================
 # Database (Turso/libSQL) and file storage (Vercel Blob) are both external
 # services now, so this image has no local persistent state and needs no

@@ -1854,7 +1854,7 @@ async function openCreateInvoiceModal() {
     if ($('#invoice-due-date')) $('#invoice-due-date').value = due;
     if ($('#invoice-discount')) $('#invoice-discount').value = 0;
     if ($('#invoice-tax-rate')) $('#invoice-tax-rate').value = 7;
-    if ($('#invoice-issuer-name')) $('#invoice-issuer-name').value = localStorage.getItem('ag_issuer_name') || 'AG PROJECTS CO., LTD.';
+    if ($('#invoice-issuer-name')) $('#invoice-issuer-name').value = localStorage.getItem('ag_issuer_name') || 'DG PROJECTS CO., LTD.';
     if ($('#invoice-issuer-addr')) $('#invoice-issuer-addr').value = localStorage.getItem('ag_issuer_addr') || '123 Tech Tower, Silom Road, Bangrak, Bangkok 10500 | Tax ID: 0105550001234';
 
     try {
@@ -1904,7 +1904,7 @@ async function openEditInvoiceModal(invoiceId) {
         $('#invoice-discount').value = inv.discount || 0;
         $('#invoice-tax-rate').value = inv.tax_rate !== undefined && inv.tax_rate !== null ? String(inv.tax_rate) : '7';
         $('#invoice-notes').value = inv.notes || '';
-        $('#invoice-issuer-name').value = localStorage.getItem('ag_issuer_name') || 'AG PROJECTS CO., LTD.';
+        $('#invoice-issuer-name').value = localStorage.getItem('ag_issuer_name') || 'DG PROJECTS CO., LTD.';
         $('#invoice-issuer-addr').value = localStorage.getItem('ag_issuer_addr') || '123 Tech Tower, Silom Road, Bangrak, Bangkok 10500 | Tax ID: 0105550001234';
 
         let items = [];
@@ -2077,7 +2077,7 @@ async function showInvoicePreview(invoiceId) {
         const statusText = inv.status === 'paid' ? 'PAID / ชำระเงินแล้ว' : inv.status === 'overdue' ? 'OVERDUE / เกินกำหนด' : inv.status === 'cancelled' ? 'CANCELLED / ยกเลิก' : 'UNPAID / รอการชำระเงิน';
         const statusColor = inv.status === 'paid' ? '#10b981' : inv.status === 'overdue' ? '#ef4444' : inv.status === 'cancelled' ? '#94a3b8' : '#f59e0b';
 
-        const issuerName = localStorage.getItem('ag_issuer_name') || 'AG PROJECTS CO., LTD.';
+        const issuerName = localStorage.getItem('ag_issuer_name') || 'DG PROJECTS CO., LTD.';
         const issuerAddr = localStorage.getItem('ag_issuer_addr') || '123 Tech Tower, Silom Road, Bangrak, Bangkok 10500\nTax ID: 0105550001234 (Head Office) | Tel: 02-111-2222';
         const issuerAddrFormatted = issuerAddr.replace(/\n/g, '<br>');
 
@@ -2142,7 +2142,7 @@ async function showInvoicePreview(invoiceId) {
                             <div style="font-weight:700;color:#0f172a;margin-bottom:6px;font-size:0.88rem;">💳 Payment Terms & Bank Transfer Info:</div>
                             ${inv.notes ? `<div style="margin-bottom:8px;color:#0f172a;">${esc(inv.notes)}</div>` : ''}
                             <div><strong>Bank Name:</strong> Kasikorn Bank (Public Co., Ltd.)</div>
-                            <div><strong>Account Name:</strong> AG Projects Co., Ltd.</div>
+                            <div><strong>Account Name:</strong> DG Projects Co., Ltd.</div>
                             <div><strong>Account Number:</strong> 777-2-34567-8 (Savings / Silom Branch)</div>
                             <div><strong>PromptPay / Tax ID:</strong> 0105550001234</div>
                         </div>
@@ -2188,13 +2188,13 @@ async function showInvoicePreview(invoiceId) {
 }
 
 function editIssuerAddressFromPreview() {
-    const curName = localStorage.getItem('ag_issuer_name') || 'AG PROJECTS CO., LTD.';
+    const curName = localStorage.getItem('ag_issuer_name') || 'DG PROJECTS CO., LTD.';
     const curAddr = localStorage.getItem('ag_issuer_addr') || '123 Tech Tower, Silom Road, Bangrak, Bangkok 10500\nTax ID: 0105550001234 (Head Office) | Tel: 02-111-2222';
     const newName = prompt(currentLang === 'th' ? 'ชื่อบริษัทผู้ออกบิล (Company Name):' : 'Issuer Company Name:', curName);
     if (newName === null) return;
     const newAddr = prompt(currentLang === 'th' ? 'ที่อยู่บริษัทและเลขประจำตัวผู้เสียภาษี (Address & Tax ID):' : 'Issuer Address & Tax ID:', curAddr);
     if (newAddr === null) return;
-    localStorage.setItem('ag_issuer_name', newName.trim() || 'AG PROJECTS CO., LTD.');
+    localStorage.setItem('ag_issuer_name', newName.trim() || 'DG PROJECTS CO., LTD.');
     localStorage.setItem('ag_issuer_addr', newAddr.trim() || curAddr);
     const sel = $('#preview-inv-status');
     if (sel && sel.dataset.id) {

@@ -1,5 +1,5 @@
 # 🚀 คู่มือการนำระบบขึ้นใช้งานจริง (Production Deployment Guide)
-**ระบบบริหารจัดการโครงการองค์กร (AG Projects Enterprise — Zoho Projects Clone)**
+**ระบบบริหารจัดการโครงการองค์กร (DG Projects Enterprise — Zoho Projects Clone)**
 
 ---
 
